@@ -9,7 +9,7 @@ import {
   Palette, ShoppingCart, MessageCircle, Megaphone,
   Layers, Cpu, Database, Cloud, MousePointer,
   Briefcase, Award, TrendingUp, Monitor,
-} from "https://esm.sh/lucide-react";
+} from "lucide-react";
 
 const SUPABASE_URL = "https://ymjgbsreczcjwmgujina.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_picW1XWS2VCMK257F7mRtw_hlA2DemC";
