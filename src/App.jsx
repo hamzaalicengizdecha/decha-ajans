@@ -1040,3 +1040,4 @@ INSERT INTO decha_settings (id) VALUES (1)
     </>
   );
 }
+export default App;
