@@ -9,7 +9,7 @@ import {
   Palette, ShoppingCart, MessageCircle, Megaphone,
   Layers, Cpu, Database, Cloud, MousePointer,
   Briefcase, Award, TrendingUp, Monitor,
-} from "lucide-react";
+} from "https://esm.sh/lucide-react";
 
 const SUPABASE_URL = "https://ymjgbsreczcjwmgujina.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_picW1XWS2VCMK257F7mRtw_hlA2DemC";
@@ -36,6 +36,7 @@ const supabase = {
       }
     },
 
+    // ── Düzeltilmiş upsert: gerçek hata mesajını konsola yazar ──────────────
     upsert: async (payload) => {
       try {
         const res = await fetch(
@@ -46,6 +47,7 @@ const supabase = {
               apikey: SUPABASE_ANON_KEY,
               Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
               "Content-Type": "application/json",
+              // on_conflict=id → id sütununa göre çakışma yönetimi
               Prefer: "return=minimal,resolution=merge-duplicates",
             },
             body: JSON.stringify(payload),
@@ -53,6 +55,7 @@ const supabase = {
         );
 
         if (!res.ok) {
+          // HTTP 200/201/204 dışında bir durum kodu: gerçek mesajı yakala
           let errDetail = res.statusText;
           try {
             const body = await res.json();
@@ -161,6 +164,30 @@ const initSettings = {
   emailjsPublicKey: "",
 };
 
+// ─── Tema & Düzen Varsayılanları ──────────────────────────────────────────────
+const initTheme = {
+  primary: "#a855f7",   // Ana mor
+  secondary: "#6d28d9",   // Koyu mor
+  accent: "#c084fc",   // Açık mor / vurgu
+  bg: "#07070f",   // Sayfa arkaplanı
+  cardBg: "rgba(255,255,255,0.025)",
+  textMain: "#f8fafc",
+  textMuted: "#475569",
+};
+
+const initSpacing = {
+  sectionPaddingY: 110,   // px — bölümler arası dikey boşluk
+  cardRadius: 20,    // px — kart border-radius
+  buttonRadius: 14,    // px — buton border-radius
+};
+
+const initEmailTemplates = {
+  adminSubject: "Yeni İletişim Formu Mesajı",
+  adminBody: "Ad: {{from_name}}\nE-posta: {{from_email}}\n\nMesaj:\n{{message}}",
+  userSubject: "Mesajınız Alındı — Decha",
+  userBody: "Merhaba {{from_name}},\n\nMesajınızı aldık. En kısa sürede size dönüş yapacağız.\n\nDecha Ekibi",
+};
+
 // ─── Genişletilmiş İkon Haritası (25+ ikon) ──────────────────────────────────
 const ICON_MAP = {
   // Orijinaller
@@ -250,9 +277,12 @@ const ServiceIcon = ({ iconKey, size = 36, color = "#a855f7" }) => {
 };
 
 // ─── Ana Bileşen ──────────────────────────────────────────────────────────────
-export default function App() {
+export default function Decha() {
   const [data, setData] = useState(initData);
   const [settings, setSettings] = useState(initSettings);
+  const [theme, setTheme] = useState(initTheme);
+  const [spacing, setSpacing] = useState(initSpacing);
+  const [emailTemplates, setEmailTemplates] = useState(initEmailTemplates);
   const [adminOpen, setAdminOpen] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState("");
@@ -260,6 +290,9 @@ export default function App() {
   const [showPw, setShowPw] = useState(false);
   const [editData, setEditData] = useState(null);
   const [editSettings, setEditSettings] = useState(null);
+  const [editTheme, setEditTheme] = useState(null);
+  const [editSpacing, setEditSpacing] = useState(null);
+  const [editEmailTemplates, setEditEmailTemplates] = useState(null);
   const [tab, setTab] = useState("hero");
   const [saved, setSaved] = useState(false);
   const [saveErr, setSaveErr] = useState(false);
@@ -291,6 +324,9 @@ export default function App() {
           services: row.services || initData.services,
           testimonials: row.testimonials || initData.testimonials,
         });
+        if (row.theme) setTheme({ ...initTheme, ...row.theme });
+        if (row.spacing) setSpacing({ ...initSpacing, ...row.spacing });
+        if (row.emailTemplates) setEmailTemplates({ ...initEmailTemplates, ...row.emailTemplates });
         setDbReady(true);
       }
       const { data: sRows } = await supabase.from("decha_settings").select();
@@ -322,6 +358,9 @@ export default function App() {
       setAuthed(true);
       setEditData(JSON.parse(JSON.stringify(data)));
       setEditSettings(JSON.parse(JSON.stringify(settings)));
+      setEditTheme(JSON.parse(JSON.stringify(theme)));
+      setEditSpacing(JSON.parse(JSON.stringify(spacing)));
+      setEditEmailTemplates(JSON.parse(JSON.stringify(emailTemplates)));
       setPwErr(false);
       setLockTimer(0);
     } else {
@@ -353,6 +392,9 @@ export default function App() {
         initials: sanitize(t.initials).slice(0, 2),
         text: sanitize(t.text),
       })),
+      theme: editTheme,
+      spacing: editSpacing,
+      emailTemplates: editEmailTemplates,
     };
 
     let cleanSettings = { ...editSettings };
@@ -360,11 +402,14 @@ export default function App() {
       cleanSettings = { ...cleanSettings, adminPass: await sha256(editSettings.adminPass) };
     }
 
-    // Önce yerel state'i güncelle
-    setData(cleanData);
+    // Yerel state güncelle
+    const { theme: t, spacing: sp, emailTemplates: et, ...coreData } = cleanData;
+    setData(coreData);
+    setTheme(t);
+    setSpacing(sp);
+    setEmailTemplates(et);
     setSettings(cleanSettings);
 
-    // Supabase upsert — her iki tabloya da tek satır yaz (id=1)
     const { error: e1 } = await supabase
       .from("decha_content")
       .upsert({ id: 1, ...cleanData });
@@ -475,10 +520,13 @@ export default function App() {
   });
 
   const TABS = [
-    { key: "hero", label: "Hero", Icon: Home },
+    { key: "hero", label: "Hero Alanı", Icon: Home },
     { key: "services", label: "Hizmetler", Icon: Zap },
     { key: "testimonials", label: "Referanslar", Icon: MessageSquare },
-    { key: "settings", label: "Ayarlar", Icon: Settings },
+    { key: "theme", label: "Renk & Tema", Icon: Palette },
+    { key: "spacing", label: "Boşluk & Düzen", Icon: Layout },
+    { key: "emailTemplates", label: "E-posta Şablonları", Icon: Mail },
+    { key: "settings", label: "Genel Ayarlar", Icon: Settings },
   ];
 
   return (
@@ -516,7 +564,7 @@ export default function App() {
         .admin-foot:hover{color:#475569!important}
       `}</style>
 
-      <div style={{ fontFamily: "DM Sans, sans-serif", background: "#07070f", color: "#e2e8f0", minHeight: "100vh", overflowX: "hidden" }}>
+      <div style={{ fontFamily: "DM Sans, sans-serif", background: theme.bg, color: theme.textMain, minHeight: "100vh", overflowX: "hidden" }}>
 
         {/* ── AMBIENT ORBS ── */}
         <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -591,7 +639,7 @@ export default function App() {
         </section>
 
         {/* ── SERVICES ── */}
-        <section id="services" style={{ position: "relative", zIndex: 1, padding: "110px 48px", maxWidth: 1320, margin: "0 auto" }}>
+        <section id="services" style={{ position: "relative", zIndex: 1, padding: `${spacing.sectionPaddingY}px 48px`, maxWidth: 1320, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 70 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,.1)", border: "1px solid rgba(168,85,247,.22)", borderRadius: 100, padding: "6px 18px", marginBottom: 18, fontSize: 13, color: "#c084fc" }}>
               <Zap size={13} strokeWidth={1.5} /> Hizmetlerimiz
@@ -613,7 +661,7 @@ export default function App() {
         </section>
 
         {/* ── TESTIMONIALS ── */}
-        <section id="testimonials" style={{ position: "relative", zIndex: 1, padding: "110px 0", background: "rgba(168,85,247,.015)", borderTop: "1px solid rgba(168,85,247,.07)", borderBottom: "1px solid rgba(168,85,247,.07)", overflow: "hidden" }}>
+        <section id="testimonials" style={{ position: "relative", zIndex: 1, padding: `${spacing.sectionPaddingY}px 0`, background: "rgba(168,85,247,.015)", borderTop: "1px solid rgba(168,85,247,.07)", borderBottom: "1px solid rgba(168,85,247,.07)", overflow: "hidden" }}>
           <div style={{ textAlign: "center", marginBottom: 60, padding: "0 48px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,.1)", border: "1px solid rgba(168,85,247,.22)", borderRadius: 100, padding: "6px 18px", marginBottom: 18, fontSize: 13, color: "#c084fc" }}>
               <MessageSquare size={13} strokeWidth={1.5} /> Referanslar
@@ -656,7 +704,7 @@ export default function App() {
         </section>
 
         {/* ── CONTACT ── */}
-        <section id="contact" style={{ position: "relative", zIndex: 1, padding: "110px 24px", maxWidth: 680, margin: "0 auto" }}>
+        <section id="contact" style={{ position: "relative", zIndex: 1, padding: `${spacing.sectionPaddingY}px 24px`, maxWidth: 680, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,.1)", border: "1px solid rgba(168,85,247,.22)", borderRadius: 100, padding: "6px 18px", marginBottom: 18, fontSize: 13, color: "#c084fc" }}>
               <Mail size={13} strokeWidth={1.5} /> İletişim
@@ -710,150 +758,137 @@ export default function App() {
           <button className="admin-foot" onClick={() => setAdminOpen(true)} style={{ background: "none", border: "none", color: "#0f172a", fontSize: 12, cursor: "pointer", fontFamily: "DM Sans, sans-serif", padding: "6px 10px", borderRadius: 6, transition: "color .2s" }}>Admin</button>
         </footer>
 
-        {/* ── ADMIN OVERLAY ── */}
+
+        {/* ── ADMIN — Tam Ekran CMS ── */}
         {adminOpen && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,.88)", backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-            onClick={e => e.target === e.currentTarget && closeAdmin()}>
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: theme.bg }}>
 
             {!authed ? (
               /* ── Giriş ekranı ── */
-              <div style={{ background: "#0c0c1c", border: "1px solid rgba(168,85,247,.3)", borderRadius: 24, padding: "56px 48px", width: "100%", maxWidth: 400, textAlign: "center", boxShadow: "0 0 100px rgba(168,85,247,.18)" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg,#6d28d9,#a855f7)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 26px" }}>
-                  <Lock size={26} color="#fff" strokeWidth={1.5} />
-                </div>
-                <h3 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", marginBottom: 8, fontSize: 24, fontWeight: 800 }}>Admin Girişi</h3>
-                <p style={{ color: "#334155", fontSize: 14, marginBottom: 34, lineHeight: 1.6 }}>Decha yönetim paneline erişmek için şifrenizi girin.</p>
-                <div style={{ position: "relative", marginBottom: pwErr ? 8 : 18 }}>
-                  <input type={showPw ? "text" : "password"} placeholder="••••••••" value={pw}
-                    onChange={e => { setPw(e.target.value); setPwErr(false); }}
-                    onKeyDown={e => e.key === "Enter" && login()}
-                    style={{ ...inp, textAlign: "center", fontSize: 20, letterSpacing: 6, border: `1px solid ${pwErr ? "#ef4444" : "rgba(168,85,247,.25)"}`, paddingRight: 44 }} />
-                  <button onClick={() => setShowPw(v => !v)} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 2 }}>
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.92)", backdropFilter: "blur(14px)" }}>
+                <div style={{ background: "#0c0c1c", border: "1px solid rgba(168,85,247,.3)", borderRadius: 24, padding: "56px 48px", width: "100%", maxWidth: 400, textAlign: "center", boxShadow: "0 0 100px rgba(168,85,247,.18)" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: `linear-gradient(135deg,${theme.secondary},${theme.primary})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 26px" }}>
+                    <Lock size={26} color="#fff" strokeWidth={1.5} />
+                  </div>
+                  <h3 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", marginBottom: 8, fontSize: 24, fontWeight: 800 }}>Admin Girişi</h3>
+                  <p style={{ color: "#334155", fontSize: 14, marginBottom: 34, lineHeight: 1.6 }}>Decha yönetim paneline erişmek için şifrenizi girin.</p>
+                  <div style={{ position: "relative", marginBottom: pwErr ? 8 : 18 }}>
+                    <input type={showPw ? "text" : "password"} placeholder="••••••••" value={pw}
+                      onChange={e => { setPw(e.target.value); setPwErr(false); }}
+                      onKeyDown={e => e.key === "Enter" && login()}
+                      style={{ ...inp, textAlign: "center", fontSize: 20, letterSpacing: 6, border: `1px solid ${pwErr ? "#ef4444" : "rgba(168,85,247,.25)"}`, paddingRight: 44 }} />
+                    <button onClick={() => setShowPw(v => !v)} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 2 }}>
+                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {pwErr && !lockTimer && <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><X size={14} /> Yanlış şifre!</p>}
+                  {lockTimer > 0 && (
+                    <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.25)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                      <Shield size={13} /> Çok fazla hatalı deneme. {lockTimer}s bekleyin.
+                    </div>
+                  )}
+                  <button onClick={login} disabled={lockTimer > 0} style={{ width: "100%", padding: 15, background: lockTimer > 0 ? "rgba(168,85,247,.25)" : `linear-gradient(135deg,${theme.secondary},${theme.primary})`, border: "none", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: lockTimer > 0 ? "not-allowed" : "pointer", fontFamily: "DM Sans, sans-serif" }}>
+                    {lockTimer > 0 ? `Kilitli (${lockTimer}s)` : "Giriş Yap"}
                   </button>
                 </div>
-                {pwErr && !lockTimer && <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><X size={14} /> Yanlış şifre!</p>}
-                {lockTimer > 0 && (
-                  <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.25)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, color: "#f87171", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-                    <Shield size={13} /> Çok fazla hatalı deneme. {lockTimer}s bekleyin.
-                  </div>
-                )}
-                <button onClick={login} disabled={lockTimer > 0} style={{ width: "100%", padding: 15, background: lockTimer > 0 ? "rgba(168,85,247,.25)" : "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: lockTimer > 0 ? "not-allowed" : "pointer", fontFamily: "DM Sans, sans-serif" }}>
-                  {lockTimer > 0 ? `Kilitli (${lockTimer}s)` : "Giriş Yap"}
-                </button>
               </div>
 
             ) : (
-              /* ── Admin Paneli ── */
-              <div style={{ background: "#0c0c1c", border: "1px solid rgba(168,85,247,.22)", borderRadius: 24, padding: 34, width: "100%", maxWidth: 740, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 0 100px rgba(168,85,247,.12)" }}>
+              /* ── Tam Ekran Dashboard ── */
+              <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
-                {/* Panel başlık */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                      <Logo size="sm" />
-                      <h3 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontSize: 20, fontWeight: 800, margin: 0 }}>Admin Paneli</h3>
+                {/* ═══ SOL SIDEBAR ═══ */}
+                <aside style={{ width: 260, flexShrink: 0, background: "#09090f", borderRight: "1px solid rgba(168,85,247,.12)", display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+                  <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid rgba(168,85,247,.08)" }}>
+                    <Logo size="sm" />
+                    <p style={{ color: "#1e293b", fontSize: 11, marginTop: 4, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".8px" }}>Yönetim Paneli</p>
+                  </div>
+                  <nav style={{ flex: 1, overflowY: "auto", padding: "12px 10px" }}>
+                    {TABS.map(({ key, label, Icon }) => (
+                      <button key={key} onClick={() => setTab(key)} style={{
+                        width: "100%", padding: "11px 14px", marginBottom: 3, borderRadius: 10, border: "none", cursor: "pointer",
+                        background: tab === key ? `linear-gradient(135deg,${theme.secondary},${theme.primary})` : "transparent",
+                        color: tab === key ? "#fff" : "#334155",
+                        display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 600, fontFamily: "DM Sans, sans-serif", textAlign: "left", transition: "all .2s",
+                      }}
+                        onMouseEnter={e => { if (tab !== key) e.currentTarget.style.background = "rgba(168,85,247,.08)"; }}
+                        onMouseLeave={e => { if (tab !== key) e.currentTarget.style.background = "transparent"; }}>
+                        <Icon size={15} strokeWidth={1.8} /> {label}
+                      </button>
+                    ))}
+                  </nav>
+                  <div style={{ padding: "12px 10px", borderTop: "1px solid rgba(168,85,247,.08)" }}>
+                    <button onClick={() => setAdminOpen(false)} style={{ width: "100%", padding: "11px 14px", marginBottom: 6, borderRadius: 10, border: "1px solid rgba(168,85,247,.2)", cursor: "pointer", background: "rgba(168,85,247,.06)", color: theme.accent, display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, fontFamily: "DM Sans, sans-serif" }}>
+                      <Home size={14} strokeWidth={1.8} /> Siteye Dön
+                    </button>
+                    <button onClick={() => { setAuthed(false); setPw(""); setPwErr(false); }} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,.2)", cursor: "pointer", background: "rgba(239,68,68,.05)", color: "#f87171", display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, fontFamily: "DM Sans, sans-serif" }}>
+                      <X size={14} strokeWidth={1.8} /> Çıkış Yap
+                    </button>
+                  </div>
+                </aside>
+
+                {/* ═══ SAĞ İÇERİK ALANI ═══ */}
+                <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+                  {/* Sticky üst bar */}
+                  <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(9,9,15,.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(168,85,247,.1)", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexShrink: 0 }}>
+                    <div>
+                      <h2 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontSize: 18, fontWeight: 800, margin: 0 }}>{TABS.find(t => t.key === tab)?.label || ""}</h2>
+                      <p style={{ color: "#1e293b", fontSize: 12, marginTop: 2 }}>Değişiklikleri yapmak için aşağıdaki formu düzenleyin</p>
                     </div>
-                    <p style={{ color: "#1e293b", fontSize: 13 }}>İçerikleri düzenle ve kaydet</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      {saved && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={14} /> Kaydedildi!</span>}
+                      {saveErr && <span style={{ color: "#f87171", fontSize: 12, fontWeight: 600, maxWidth: 200, lineHeight: 1.4 }}>⚠️ {saveErrMsg || "Kayıt hatası!"}</span>}
+                      <button onClick={save} style={{ background: `linear-gradient(135deg,${theme.secondary},${theme.primary})`, border: "none", color: "#fff", padding: "11px 28px", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "DM Sans, sans-serif", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 0 24px ${theme.primary}55` }}>
+                        <Save size={14} /> Kaydet
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                    {saved && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={14} /> Kaydedildi!</span>}
-                    {saveErr && (
-                      <span style={{ color: "#f87171", fontSize: 12, fontWeight: 600, maxWidth: 220, lineHeight: 1.4 }}>
-                        ⚠️ {saveErrMsg || "Kayıt hatası! Konsolu kontrol edin."}
-                      </span>
-                    )}
-                    <button onClick={save} style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", padding: "10px 24px", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "DM Sans, sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
-                      <Save size={14} /> Kaydet
-                    </button>
-                    <button onClick={closeAdmin} style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "#475569", padding: "10px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center" }}>
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Sekmeler */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
-                  {TABS.map(({ key, label, Icon }) => (
-                    <button key={key} onClick={() => setTab(key)} style={{
-                      padding: "9px 18px", borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "DM Sans, sans-serif",
-                      background: tab === key ? "linear-gradient(135deg,#6d28d9,#a855f7)" : "rgba(255,255,255,.04)",
-                      border: tab === key ? "none" : "1px solid rgba(255,255,255,.07)", color: tab === key ? "#fff" : "#334155",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}>
-                      <Icon size={13} strokeWidth={1.8} /> {label}
-                    </button>
-                  ))}
-                </div>
+                  {/* Kaydırılabilir içerik */}
+                  <div style={{ flex: 1, overflowY: "auto", padding: "32px 40px" }}>
 
-                {editData && (
-                  <>
-                    {/* ── Hero sekmesi ── */}
-                    {tab === "hero" && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                    {/* ── Hero ── */}
+                    {tab === "hero" && editData && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 680 }}>
                         {[["Başlık 1", "h1"], ["Başlık 2 (Vurgulu)", "h2"], ["Alt Metin", "sub"]].map(([label, k]) => (
                           <div key={k}>
-                            <label style={{ display: "block", fontSize: 11, color: "#a855f7", fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>{label}</label>
+                            <label style={{ display: "block", fontSize: 11, color: theme.primary, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>{label}</label>
                             <input value={editData.hero[k]} onChange={e => setEditData({ ...editData, hero: { ...editData.hero, [k]: e.target.value } })} style={inp} />
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* ── Hizmetler sekmesi (CRUD) ── */}
-                    {tab === "services" && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-                        {editData.services.length === 0 && (
-                          <div style={{ textAlign: "center", padding: "28px 0", color: "#334155", fontSize: 14 }}>
-                            Henüz hizmet yok. Aşağıdan ilk hizmeti ekleyin.
-                          </div>
-                        )}
-
+                    {/* ── Hizmetler CRUD ── */}
+                    {tab === "services" && editData && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 680 }}>
+                        {editData.services.length === 0 && <div style={{ textAlign: "center", padding: "28px 0", color: "#334155", fontSize: 14 }}>Henüz hizmet yok. Aşağıdan ilk hizmeti ekleyin.</div>}
                         {editData.services.map((svc, i) => {
                           const PreviewIcon = ICON_MAP[svc.iconKey] || Globe;
                           return (
-                            <div key={svc.id} style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.1)", borderRadius: 12, padding: 20, position: "relative" }}>
-
-                              {/* Başlık + Sil */}
+                            <div key={svc.id || i} style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.1)", borderRadius: 12, padding: 20 }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                                <div style={{ color: "#a855f7", fontWeight: 700, fontSize: 14, fontFamily: "Syne, sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
-                                  <Zap size={14} /> Hizmet {i + 1}
-                                </div>
-                                <button
-                                  onClick={() => delSvc(i)}
-                                  title="Hizmeti Sil"
-                                  style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, fontFamily: "DM Sans, sans-serif", transition: "all .2s" }}
-                                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,.18)"; e.currentTarget.style.borderColor = "#f87171"; }}
-                                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,.08)"; e.currentTarget.style.borderColor = "rgba(239,68,68,.2)"; }}
-                                >
+                                <div style={{ color: theme.primary, fontWeight: 700, fontSize: 14, fontFamily: "Syne, sans-serif", display: "flex", alignItems: "center", gap: 8 }}><Zap size={14} /> Hizmet {i + 1}</div>
+                                <button onClick={() => delSvc(i)} style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, fontFamily: "DM Sans, sans-serif" }}
+                                  onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,.18)"}
+                                  onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,.08)"}>
                                   <Trash2 size={13} /> Sil
                                 </button>
                               </div>
-
-                              {/* İkon seçici + önizleme */}
                               <div style={{ marginBottom: 14 }}>
                                 <label style={{ display: "block", fontSize: 11, color: "#1e293b", fontWeight: 600, marginBottom: 4, textTransform: "uppercase" }}>İkon</label>
                                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                  {/* Önizleme kutusu */}
                                   <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(168,85,247,.12)", border: "1px solid rgba(168,85,247,.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                    <PreviewIcon size={22} color="#a855f7" strokeWidth={1.5} />
+                                    <PreviewIcon size={22} color={theme.primary} strokeWidth={1.5} />
                                   </div>
-                                  <select
-                                    value={svc.iconKey}
-                                    onChange={e => updSvc(i, "iconKey", e.target.value)}
-                                    style={{ ...inp, cursor: "pointer", flex: 1 }}
-                                  >
-                                    {ICON_OPTIONS.map(opt => (
-                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
+                                  <select value={svc.iconKey} onChange={e => updSvc(i, "iconKey", e.target.value)} style={{ ...inp, cursor: "pointer", flex: 1 }}>
+                                    {ICON_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                   </select>
                                 </div>
                               </div>
-
-                              {/* Diğer alanlar */}
                               {[["Başlık", "title"], ["Etiket", "tag"], ["Açıklama", "desc"]].map(([label, k]) => (
-                                <div key={k} style={{ marginBottom: 12 }}>
+                                <div key={k} style={{ marginBottom: 10 }}>
                                   <label style={{ display: "block", fontSize: 11, color: "#1e293b", fontWeight: 600, marginBottom: 4, textTransform: "uppercase" }}>{label}</label>
                                   <input value={svc[k] || ""} onChange={e => updSvc(i, k, e.target.value)} style={{ ...inp, fontSize: 13 }} />
                                 </div>
@@ -861,52 +896,27 @@ export default function App() {
                             </div>
                           );
                         })}
-
-                        {/* Hizmet Ekle butonu */}
-                        <button
-                          onClick={addSvc}
-                          style={{
-                            width: "100%", padding: "13px 0", border: "1px dashed rgba(168,85,247,.35)",
-                            background: "rgba(168,85,247,.04)", color: "#a855f7", borderRadius: 12,
-                            cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "DM Sans, sans-serif",
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                            transition: "all .25s",
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,.1)"; e.currentTarget.style.borderColor = "#a855f7"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,.04)"; e.currentTarget.style.borderColor = "rgba(168,85,247,.35)"; }}
-                        >
+                        <button onClick={addSvc} style={{ width: "100%", padding: "13px 0", border: "1px dashed rgba(168,85,247,.35)", background: "rgba(168,85,247,.04)", color: theme.primary, borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "DM Sans, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                          onMouseEnter={e => e.currentTarget.style.background = "rgba(168,85,247,.1)"}
+                          onMouseLeave={e => e.currentTarget.style.background = "rgba(168,85,247,.04)"}>
                           <Plus size={16} strokeWidth={2.2} /> Yeni Hizmet Ekle
                         </button>
                       </div>
                     )}
 
-                    {/* ── Referanslar sekmesi ── */}
-                    {tab === "testimonials" && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-                        {editData.testimonials.length === 0 && (
-                          <div style={{ textAlign: "center", padding: "28px 0", color: "#334155", fontSize: 14 }}>
-                            Henüz referans yok. Aşağıdan ilk referansı ekleyin.
-                          </div>
-                        )}
-
+                    {/* ── Referanslar CRUD ── */}
+                    {tab === "testimonials" && editData && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 680 }}>
+                        {editData.testimonials.length === 0 && <div style={{ textAlign: "center", padding: "28px 0", color: "#334155", fontSize: 14 }}>Henüz referans yok. Aşağıdan ilk referansı ekleyin.</div>}
                         {editData.testimonials.map((t, i) => (
-                          <div key={t.id || i} style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.1)", borderRadius: 12, padding: 20, position: "relative" }}>
+                          <div key={t.id || i} style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.1)", borderRadius: 12, padding: 20 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                              <div style={{ color: "#a855f7", fontWeight: 700, fontSize: 14, fontFamily: "Syne, sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
-                                <User size={14} /> Referans {i + 1}
-                              </div>
-                              <button
-                                onClick={() => setEditData({ ...editData, testimonials: editData.testimonials.filter((_, idx) => idx !== i) })}
-                                title="Referansı Sil"
-                                style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, fontFamily: "DM Sans, sans-serif", transition: "all .2s" }}
-                                onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,.18)"; e.currentTarget.style.borderColor = "#f87171"; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,.08)"; e.currentTarget.style.borderColor = "rgba(239,68,68,.2)"; }}
-                              >
+                              <div style={{ color: theme.primary, fontWeight: 700, fontSize: 14, fontFamily: "Syne, sans-serif", display: "flex", alignItems: "center", gap: 8 }}><User size={14} /> Referans {i + 1}</div>
+                              <button onClick={() => setEditData({ ...editData, testimonials: editData.testimonials.filter((_, idx) => idx !== i) })}
+                                style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, fontFamily: "DM Sans, sans-serif" }}>
                                 <Trash2 size={13} /> Sil
                               </button>
                             </div>
-
                             {[["İsim", "name"], ["Ünvan", "role"], ["Kısaltma (2 harf)", "initials"]].map(([label, k]) => (
                               <div key={k} style={{ marginBottom: 10 }}>
                                 <label style={{ display: "block", fontSize: 11, color: "#1e293b", fontWeight: 600, marginBottom: 4, textTransform: "uppercase" }}>{label}</label>
@@ -919,95 +929,144 @@ export default function App() {
                             </div>
                           </div>
                         ))}
-
-                        <button
-                          onClick={() => setEditData({ ...editData, testimonials: [...editData.testimonials, { id: Date.now(), name: "", role: "", initials: "", text: "" }] })}
-                          style={{
-                            width: "100%", padding: "13px 0", border: "1px dashed rgba(168,85,247,.35)",
-                            background: "rgba(168,85,247,.04)", color: "#a855f7", borderRadius: 12,
-                            cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "DM Sans, sans-serif",
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                            transition: "all .25s",
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,.1)"; e.currentTarget.style.borderColor = "#a855f7"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,.04)"; e.currentTarget.style.borderColor = "rgba(168,85,247,.35)"; }}
-                        >
+                        <button onClick={() => setEditData({ ...editData, testimonials: [...editData.testimonials, { id: Date.now(), name: "", role: "", initials: "", text: "" }] })}
+                          style={{ width: "100%", padding: "13px 0", border: "1px dashed rgba(168,85,247,.35)", background: "rgba(168,85,247,.04)", color: theme.primary, borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "DM Sans, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                           <Plus size={16} strokeWidth={2.2} /> Yeni Referans Ekle
                         </button>
                       </div>
                     )}
-                  </>
-                )}
 
-                {/* ── Ayarlar sekmesi ── */}
-                {tab === "settings" && editSettings && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-
-                    <div style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.12)", borderRadius: 14, padding: 24 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-                        <Shield size={16} color="#a855f7" strokeWidth={1.5} />
-                        <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>Şifre Değiştir</h4>
-                      </div>
-                      <div>
-                        <label style={{ display: "block", fontSize: 11, color: "#a855f7", fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>Yeni Admin Şifresi</label>
-                        <input
-                          type="password"
-                          placeholder="Yeni şifrenizi girin..."
-                          value={editSettings.adminPass}
-                          onChange={e => setEditSettings({ ...editSettings, adminPass: e.target.value })}
-                          style={inp}
-                        />
-                        <p style={{ color: "#1e293b", fontSize: 12, marginTop: 8 }}>Kaydet butonuna basınca yeni şifre aktif olur.</p>
-                      </div>
-                    </div>
-
-                    <div style={{ background: "rgba(59,130,246,.04)", border: "1px solid rgba(59,130,246,.15)", borderRadius: 14, padding: 24 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-                        <Mail size={16} color="#60a5fa" strokeWidth={1.5} />
-                        <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>EmailJS Yapılandırması</h4>
-                      </div>
-                      <p style={{ color: "#334155", fontSize: 13, marginBottom: 20, lineHeight: 1.65 }}>
-                        <a href="https://emailjs.com" target="_blank" rel="noreferrer" style={{ color: "#60a5fa" }}>emailjs.com</a> üzerinde ücretsiz hesap oluşturun,
-                        bir "Email Service" ve "Email Template" tanımlayın, ardından bilgileri aşağıya girin.
-                      </p>
-                      {[["Service ID", "emailjsServiceId", "service_xxxxxxx"], ["Template ID", "emailjsTemplateId", "template_xxxxxxx"], ["Public Key", "emailjsPublicKey", "xxxxxxxxxxxxxxxxx"]].map(([label, key, ph]) => (
-                        <div key={key} style={{ marginBottom: 16 }}>
-                          <label style={{ display: "block", fontSize: 11, color: "#60a5fa", fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px", alignItems: "center", gap: 6 }}>
-                            <Key size={11} style={{ display: "inline", marginRight: 5 }} />{label}
-                          </label>
-                          <input
-                            placeholder={ph}
-                            value={editSettings[key]}
-                            onChange={e => setEditSettings({ ...editSettings, [key]: e.target.value })}
-                            style={{ ...inp, border: "1px solid rgba(59,130,246,.25)" }}
-                          />
+                    {/* ── Renk & Tema ── */}
+                    {tab === "theme" && editTheme && (
+                      <div style={{ maxWidth: 560 }}>
+                        <div style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.12)", borderRadius: 14, padding: 24, marginBottom: 20 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                            <Palette size={16} color={theme.primary} strokeWidth={1.5} />
+                            <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>Site Renkleri</h4>
+                          </div>
+                          <p style={{ color: "#334155", fontSize: 13, marginBottom: 22, lineHeight: 1.6 }}>Değişiklikler "Kaydet"e bastıktan sonra siteye yansır.</p>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                            {[["primary", "Ana Renk (buton, vurgu)"], ["secondary", "İkincil Renk (gradient)"], ["accent", "Aksan (etiket, badge)"], ["bg", "Sayfa Arkaplanı"], ["textMain", "Ana Metin"], ["textMuted", "Soluk Metin"]].map(([k, label]) => (
+                              <div key={k}>
+                                <label style={{ display: "block", fontSize: 11, color: "#475569", fontWeight: 600, marginBottom: 6, textTransform: "uppercase" }}>{label}</label>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <input type="color" value={editTheme[k]} onChange={e => setEditTheme({ ...editTheme, [k]: e.target.value })} style={{ width: 44, height: 36, border: "1px solid rgba(168,85,247,.2)", borderRadius: 8, cursor: "pointer", padding: 3, background: "rgba(255,255,255,.04)" }} />
+                                  <input value={editTheme[k]} onChange={e => setEditTheme({ ...editTheme, [k]: e.target.value })} style={{ ...inp, flex: 1, fontSize: 12, fontFamily: "monospace" }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                      <div style={{ background: "rgba(59,130,246,.06)", border: "1px solid rgba(59,130,246,.15)", borderRadius: 10, padding: "12px 16px", marginTop: 8 }}>
-                        <p style={{ color: "#60a5fa", fontSize: 12, lineHeight: 1.65 }}>
-                          <strong>💡 Template değişkenleri:</strong> Template'inizde <code style={{ background: "rgba(59,130,246,.15)", padding: "1px 5px", borderRadius: 4 }}>{"{{from_name}}"}</code>, <code style={{ background: "rgba(59,130,246,.15)", padding: "1px 5px", borderRadius: 4 }}>{"{{from_email}}"}</code> ve <code style={{ background: "rgba(59,130,246,.15)", padding: "1px 5px", borderRadius: 4 }}>{"{{message}}"}</code> değişkenlerini kullanın.
-                        </p>
+                        <div style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.12)", borderRadius: 14, padding: 20 }}>
+                          <p style={{ color: "#475569", fontSize: 11, fontWeight: 700, textTransform: "uppercase", marginBottom: 14, letterSpacing: ".8px" }}>Canlı Önizleme</p>
+                          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                            <button style={{ padding: "10px 22px", background: `linear-gradient(135deg,${editTheme.secondary},${editTheme.primary})`, border: "none", color: "#fff", borderRadius: 10, cursor: "default", fontWeight: 700, fontSize: 13 }}>Ana Buton</button>
+                            <span style={{ padding: "8px 16px", background: `${editTheme.primary}15`, border: `1px solid ${editTheme.primary}40`, borderRadius: 100, color: editTheme.accent, fontSize: 12, fontWeight: 600 }}>Etiket</span>
+                            <span style={{ color: editTheme.textMain, fontSize: 15, fontWeight: 700, fontFamily: "Syne, sans-serif" }}>Ana Metin</span>
+                            <span style={{ color: editTheme.textMuted, fontSize: 13 }}>Soluk Metin</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Supabase durumu + SQL şema ipucu */}
-                    <div style={{ background: "rgba(34,197,94,.04)", border: "1px solid rgba(34,197,94,.15)", borderRadius: 14, padding: 20, display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <CheckCircle size={18} color={dbReady ? "#22c55e" : "#475569"} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: 2 }} />
-                      <div>
-                        <p style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Supabase Durumu</p>
-                        <p style={{ color: "#334155", fontSize: 12, lineHeight: 1.65, marginBottom: 10 }}>
-                          {dbReady
-                            ? "Veritabanı bağlantısı başarılı. Değişiklikler kalıcı olarak kaydedilmektedir."
-                            : "Yerel mod aktif (Supabase bağlantısı yok). SUPABASE_URL ve SUPABASE_ANON_KEY değerlerini koda girerek kalıcı depolama aktifleştirin."}
-                        </p>
-                        <details style={{ cursor: "pointer" }}>
-                          <summary style={{ color: "#22c55e", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".5px" }}>SQL Şeması (Supabase SQL Editör)</summary>
-                          <pre style={{ marginTop: 10, background: "rgba(0,0,0,.4)", borderRadius: 8, padding: "12px 14px", fontSize: 11, color: "#94a3b8", overflowX: "auto", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{
-                            `CREATE TABLE IF NOT EXISTS decha_content (
+                    {/* ── Boşluk & Düzen ── */}
+                    {tab === "spacing" && editSpacing && (
+                      <div style={{ maxWidth: 480 }}>
+                        <div style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.12)", borderRadius: 14, padding: 24 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                            <Layout size={16} color={theme.primary} strokeWidth={1.5} />
+                            <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>Boşluk & Düzen Ayarları</h4>
+                          </div>
+                          {[["sectionPaddingY", "Bölümler Arası Dikey Boşluk (px)", 40, 200], ["cardRadius", "Kart Köşe Yarıçapı (px)", 4, 40], ["buttonRadius", "Buton Köşe Yarıçapı (px)", 4, 40]].map(([k, label, min, max]) => (
+                            <div key={k} style={{ marginBottom: 22 }}>
+                              <label style={{ display: "block", fontSize: 11, color: theme.primary, fontWeight: 700, marginBottom: 8, textTransform: "uppercase", letterSpacing: ".8px" }}>
+                                {label}: <strong style={{ color: "#f8fafc" }}>{editSpacing[k]}px</strong>
+                              </label>
+                              <input type="range" min={min} max={max} value={editSpacing[k]} onChange={e => setEditSpacing({ ...editSpacing, [k]: Number(e.target.value) })} style={{ width: "100%", accentColor: theme.primary, cursor: "pointer" }} />
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "#1e293b", fontSize: 11, marginTop: 4 }}><span>{min}px</span><span>{max}px</span></div>
+                            </div>
+                          ))}
+                          <div style={{ marginTop: 10, background: "rgba(168,85,247,.06)", border: "1px solid rgba(168,85,247,.15)", borderRadius: editSpacing.cardRadius, padding: 20, transition: "border-radius .2s" }}>
+                            <p style={{ color: "#475569", fontSize: 12, margin: 0, textAlign: "center" }}>Kart önizlemesi — borderRadius: {editSpacing.cardRadius}px</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── E-posta Şablonları ── */}
+                    {tab === "emailTemplates" && editEmailTemplates && (
+                      <div style={{ maxWidth: 680 }}>
+                        {[["Admin E-postası", "adminSubject", "adminBody", "#a855f7", "Admin'e düşen bildirim e-postası"], ["Kullanıcı Onayı", "userSubject", "userBody", "#60a5fa", "Formu dolduran kişiye giden onay e-postası"]].map(([title, subjectKey, bodyKey, color, desc]) => (
+                          <div key={subjectKey} style={{ background: "rgba(255,255,255,.02)", border: `1px solid ${color}25`, borderRadius: 14, padding: 24, marginBottom: 20 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                              <Mail size={15} color={color} strokeWidth={1.5} />
+                              <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>{title}</h4>
+                            </div>
+                            <p style={{ color: "#334155", fontSize: 12, marginBottom: 18, lineHeight: 1.6 }}>{desc}</p>
+                            <div style={{ marginBottom: 14 }}>
+                              <label style={{ display: "block", fontSize: 11, color, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>Konu (Subject)</label>
+                              <input value={editEmailTemplates[subjectKey]} onChange={e => setEditEmailTemplates({ ...editEmailTemplates, [subjectKey]: e.target.value })} style={{ ...inp, border: `1px solid ${color}30` }} />
+                            </div>
+                            <div>
+                              <label style={{ display: "block", fontSize: 11, color, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>İçerik Şablonu (Body)</label>
+                              <textarea value={editEmailTemplates[bodyKey]} onChange={e => setEditEmailTemplates({ ...editEmailTemplates, [bodyKey]: e.target.value })} rows={6} style={{ ...inp, border: `1px solid ${color}30`, resize: "vertical", lineHeight: 1.7, fontSize: 13, fontFamily: "monospace" }} />
+                            </div>
+                            <div style={{ background: `${color}08`, border: `1px solid ${color}18`, borderRadius: 8, padding: "10px 14px", marginTop: 12 }}>
+                              <p style={{ color, fontSize: 11, lineHeight: 1.6, margin: 0 }}>
+                                Değişkenler: <code style={{ background: `${color}15`, padding: "1px 5px", borderRadius: 3 }}>{"{{" + "from_name" + "}}"}</code>{" "}
+                                <code style={{ background: `${color}15`, padding: "1px 5px", borderRadius: 3 }}>{"{{" + "from_email" + "}}"}</code>{" "}
+                                <code style={{ background: `${color}15`, padding: "1px 5px", borderRadius: 3 }}>{"{{" + "message" + "}}"}</code>
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ── Genel Ayarlar ── */}
+                    {tab === "settings" && editSettings && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 560 }}>
+                        <div style={{ background: "rgba(168,85,247,.04)", border: "1px solid rgba(168,85,247,.12)", borderRadius: 14, padding: 24 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+                            <Shield size={16} color={theme.primary} strokeWidth={1.5} />
+                            <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>Şifre Değiştir</h4>
+                          </div>
+                          <label style={{ display: "block", fontSize: 11, color: theme.primary, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}>Yeni Admin Şifresi</label>
+                          <input type="password" placeholder="Yeni şifrenizi girin..." value={editSettings.adminPass} onChange={e => setEditSettings({ ...editSettings, adminPass: e.target.value })} style={inp} />
+                          <p style={{ color: "#1e293b", fontSize: 12, marginTop: 8 }}>Kaydet butonuna basınca yeni şifre aktif olur.</p>
+                        </div>
+                        <div style={{ background: "rgba(59,130,246,.04)", border: "1px solid rgba(59,130,246,.15)", borderRadius: 14, padding: 24 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                            <Mail size={16} color="#60a5fa" strokeWidth={1.5} />
+                            <h4 style={{ fontFamily: "Syne, sans-serif", color: "#f8fafc", fontWeight: 700, fontSize: 15, margin: 0 }}>EmailJS Yapılandırması</h4>
+                          </div>
+                          <p style={{ color: "#334155", fontSize: 13, marginBottom: 18, lineHeight: 1.65 }}>
+                            <a href="https://emailjs.com" target="_blank" rel="noreferrer" style={{ color: "#60a5fa" }}>emailjs.com</a> üzerinde bir "Email Service" ve "Email Template" tanımlayın.
+                          </p>
+                          {[["Service ID", "emailjsServiceId", "service_xxxxxxx"], ["Template ID", "emailjsTemplateId", "template_xxxxxxx"], ["Public Key", "emailjsPublicKey", "xxxxxxxxxxxxxxxxx"]].map(([label, key, ph]) => (
+                            <div key={key} style={{ marginBottom: 14 }}>
+                              <label style={{ display: "block", fontSize: 11, color: "#60a5fa", fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: ".8px" }}><Key size={11} style={{ display: "inline", marginRight: 4 }} />{label}</label>
+                              <input placeholder={ph} value={editSettings[key]} onChange={e => setEditSettings({ ...editSettings, [key]: e.target.value })} style={{ ...inp, border: "1px solid rgba(59,130,246,.25)" }} />
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ background: "rgba(34,197,94,.04)", border: "1px solid rgba(34,197,94,.15)", borderRadius: 14, padding: 20, display: "flex", alignItems: "flex-start", gap: 12 }}>
+                          <CheckCircle size={18} color={dbReady ? "#22c55e" : "#475569"} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: 2 }} />
+                          <div>
+                            <p style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Supabase Durumu</p>
+                            <p style={{ color: "#334155", fontSize: 12, lineHeight: 1.65, marginBottom: 10 }}>
+                              {dbReady ? "Veritabanı bağlantısı başarılı." : "Yerel mod aktif. SUPABASE_URL ve SUPABASE_ANON_KEY değerlerini girin."}
+                            </p>
+                            <details style={{ cursor: "pointer" }}>
+                              <summary style={{ color: "#22c55e", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".5px" }}>SQL Şeması</summary>
+                              <pre style={{ marginTop: 10, background: "rgba(0,0,0,.4)", borderRadius: 8, padding: "12px 14px", fontSize: 11, color: "#94a3b8", overflowX: "auto", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{`CREATE TABLE IF NOT EXISTS decha_content (
   id           integer PRIMARY KEY DEFAULT 1,
   hero         jsonb   NOT NULL DEFAULT '{}',
   services     jsonb   NOT NULL DEFAULT '[]',
-  testimonials jsonb   NOT NULL DEFAULT '[]'
+  testimonials jsonb   NOT NULL DEFAULT '[]',
+  theme        jsonb   NOT NULL DEFAULT '{}',
+  spacing      jsonb   NOT NULL DEFAULT '{}',
+  "emailTemplates" jsonb NOT NULL DEFAULT '{}'
 );
 CREATE TABLE IF NOT EXISTS decha_settings (
   id                  integer PRIMARY KEY DEFAULT 1,
@@ -1016,22 +1075,20 @@ CREATE TABLE IF NOT EXISTS decha_settings (
   "emailjsTemplateId" text,
   "emailjsPublicKey"  text
 );
-INSERT INTO decha_content  (id) VALUES (1)
-  ON CONFLICT (id) DO NOTHING;
-INSERT INTO decha_settings (id) VALUES (1)
-  ON CONFLICT (id) DO NOTHING;`
-                          }</pre>
-                        </details>
+INSERT INTO decha_content  (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO decha_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;`}</pre>
+                            </details>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                  </div>
-                )}
-
+                  </div>{/* /kaydırılabilir içerik */}
+                </main>
               </div>
             )}
           </div>
-        )}
+        )}{/* /adminOpen */}
 
       </div>
     </>
