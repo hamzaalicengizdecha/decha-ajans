@@ -9,7 +9,7 @@ import {
   Palette, ShoppingCart, MessageCircle, Megaphone,
   Layers, Cpu, Database, Cloud, MousePointer,
   Briefcase, Award, TrendingUp, Monitor,
-} from "https://esm.sh/lucide-react";
+} from "lucide-react";
 
 const SUPABASE_URL = "https://ymjgbsreczcjwmgujina.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_picW1XWS2VCMK257F7mRtw_hlA2DemC";
@@ -36,7 +36,6 @@ const supabase = {
       }
     },
 
-    // ── Düzeltilmiş upsert: gerçek hata mesajını konsola yazar ──────────────
     upsert: async (payload) => {
       try {
         const res = await fetch(
@@ -47,7 +46,6 @@ const supabase = {
               apikey: SUPABASE_ANON_KEY,
               Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
               "Content-Type": "application/json",
-              // on_conflict=id → id sütununa göre çakışma yönetimi
               Prefer: "return=minimal,resolution=merge-duplicates",
             },
             body: JSON.stringify(payload),
@@ -55,7 +53,6 @@ const supabase = {
         );
 
         if (!res.ok) {
-          // HTTP 200/201/204 dışında bir durum kodu: gerçek mesajı yakala
           let errDetail = res.statusText;
           try {
             const body = await res.json();
@@ -253,7 +250,7 @@ const ServiceIcon = ({ iconKey, size = 36, color = "#a855f7" }) => {
 };
 
 // ─── Ana Bileşen ──────────────────────────────────────────────────────────────
-export default function Decha() {
+export default function App() {
   const [data, setData] = useState(initData);
   const [settings, setSettings] = useState(initSettings);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -1040,4 +1037,3 @@ INSERT INTO decha_settings (id) VALUES (1)
     </>
   );
 }
-export default App;
