@@ -309,29 +309,38 @@ export default function App() {
   // Fetch from Supabase
   useEffect(() => {
     (async () => {
-      const { data: rows } = await supabase.from("decha_content").select();
-      if (rows && rows.length > 0) {
-        const row = rows[0];
+      try {
+        const { data: rows, error: rowErr } = await supabase.from("decha_content").select();
+        if (!rowErr && rows && rows.length > 0) {
+          const row = rows[0];
 
-        // KRİTİK DÜZELTME: Veritabanındaki boş nesneleri varsayılan verilerle güvenle birleştirir
-        setData({
-          hero: { ...initData.hero, ...(row.hero || {}) },
-          services: Array.isArray(row.services) ? row.services : initData.services,
-          testimonials: Array.isArray(row.testimonials) ? row.testimonials : initData.testimonials,
-          theme: { ...initData.theme, ...(row.theme || {}) },
-          spacing: { ...initData.spacing, ...(row.spacing || {}) },
-          emailTemplates: { ...initData.emailTemplates, ...(row.emailTemplates || {}) },
-          workingHours: { ...initData.workingHours, ...(row.workingHours || {}) },
-          meetingTexts: { ...initData.meetingTexts, ...(row.meetingTexts || {}) },
-          navbar: { ...initData.navbar, ...(row.navbar || {}), navLinks: Array.isArray(row.navbar?.navLinks) ? row.navbar.navLinks : initData.navbar.navLinks },
-          contact: { ...initData.contact, ...(row.contact || {}) },
-          footer: { ...initData.footer, ...(row.footer || {}), serviceLinks: Array.isArray(row.footer?.serviceLinks) ? row.footer.serviceLinks : initData.footer.serviceLinks, partnerLinks: Array.isArray(row.footer?.partnerLinks) ? row.footer.partnerLinks : initData.footer.partnerLinks, legalLinks: Array.isArray(row.footer?.legalLinks) ? row.footer.legalLinks : initData.footer.legalLinks },
-        });
-        setDbReady(true);
+          // KRİTİK DÜZELTME: Veritabanındaki boş nesneleri varsayılan verilerle güvenle birleştirir
+          setData({
+            hero: { ...initData.hero, ...(row.hero || {}) },
+            services: Array.isArray(row.services) ? row.services : initData.services,
+            testimonials: Array.isArray(row.testimonials) ? row.testimonials : initData.testimonials,
+            theme: { ...initData.theme, ...(row.theme || {}) },
+            spacing: { ...initData.spacing, ...(row.spacing || {}) },
+            emailTemplates: { ...initData.emailTemplates, ...(row.emailTemplates || {}) },
+            workingHours: { ...initData.workingHours, ...(row.workingHours || {}), days: Array.isArray(row.workingHours?.days) ? row.workingHours.days : initData.workingHours.days },
+            meetingTexts: { ...initData.meetingTexts, ...(row.meetingTexts || {}) },
+            navbar: { ...initData.navbar, ...(row.navbar || {}), navLinks: Array.isArray(row.navbar?.navLinks) ? row.navbar.navLinks : initData.navbar.navLinks },
+            contact: { ...initData.contact, ...(row.contact || {}) },
+            footer: { ...initData.footer, ...(row.footer || {}), serviceLinks: Array.isArray(row.footer?.serviceLinks) ? row.footer.serviceLinks : initData.footer.serviceLinks, partnerLinks: Array.isArray(row.footer?.partnerLinks) ? row.footer.partnerLinks : initData.footer.partnerLinks, legalLinks: Array.isArray(row.footer?.legalLinks) ? row.footer.legalLinks : initData.footer.legalLinks },
+          });
+          setDbReady(true);
+        }
+      } catch (fetchErr) {
+        console.error("[Supabase] İçerik yüklenirken hata:", fetchErr);
+        // initData zaten state'te, sayfa yine de çalışır
       }
-      const { data: sRows } = await supabase.from("decha_settings").select();
-      if (sRows && sRows.length > 0) {
-        setSettings({ ...initSettings, ...sRows[0] });
+      try {
+        const { data: sRows, error: sErr } = await supabase.from("decha_settings").select();
+        if (!sErr && sRows && sRows.length > 0) {
+          setSettings({ ...initSettings, ...sRows[0] });
+        }
+      } catch (setchErr) {
+        console.error("[Supabase] Ayarlar yüklenirken hata:", setchErr);
       }
     })();
   }, []);
@@ -378,56 +387,56 @@ export default function App() {
 
   const save = async () => {
     const cleanData = {
-      hero: { h1: sanitize(editData.hero.h1), h2: sanitize(editData.hero.h2), sub: sanitize(editData.hero.sub) },
-      services: editData.services.map(s => ({ ...s, tag: sanitize(s.tag), title: sanitize(s.title), desc: sanitize(s.desc) })),
-      testimonials: editData.testimonials.map(t => ({ ...t, name: sanitize(t.name), role: sanitize(t.role), initials: sanitize(t.initials).slice(0, 2), text: sanitize(t.text) })),
+      hero: { h1: sanitize(editData.hero?.h1 || ""), h2: sanitize(editData.hero?.h2 || ""), sub: sanitize(editData.hero?.sub || "") },
+      services: (editData.services || []).map(s => ({ ...s, tag: sanitize(s.tag || ""), title: sanitize(s.title || ""), desc: sanitize(s.desc || "") })),
+      testimonials: (editData.testimonials || []).map(t => ({ ...t, name: sanitize(t.name || ""), role: sanitize(t.role || ""), initials: sanitize(t.initials || "").slice(0, 2), text: sanitize(t.text || "") })),
       theme: editData.theme,
       spacing: editData.spacing,
-      emailTemplates: { subject: sanitize(editData.emailTemplates.subject), body: sanitize(editData.emailTemplates.body) },
+      emailTemplates: { subject: sanitize(editData.emailTemplates?.subject || ""), body: sanitize(editData.emailTemplates?.body || "") },
       workingHours: {
-        days: (editData.workingHours.days || []).map(d => sanitize(d)),
-        startTime: sanitize(editData.workingHours.startTime),
-        endTime: sanitize(editData.workingHours.endTime),
+        days: ((editData.workingHours?.days) || []).map(d => sanitize(d)),
+        startTime: sanitize(editData.workingHours?.startTime || ""),
+        endTime: sanitize(editData.workingHours?.endTime || ""),
       },
       meetingTexts: {
-        modalTitle: sanitize(editData.meetingTexts.modalTitle),
-        modalSubtitle: sanitize(editData.meetingTexts.modalSubtitle),
-        locationLabel: sanitize(editData.meetingTexts.locationLabel),
-        successTitle: sanitize(editData.meetingTexts.successTitle),
-        successBody: sanitize(editData.meetingTexts.successBody),
-        submitButton: sanitize(editData.meetingTexts.submitButton),
+        modalTitle: sanitize(editData.meetingTexts?.modalTitle || ""),
+        modalSubtitle: sanitize(editData.meetingTexts?.modalSubtitle || ""),
+        locationLabel: sanitize(editData.meetingTexts?.locationLabel || ""),
+        successTitle: sanitize(editData.meetingTexts?.successTitle || ""),
+        successBody: sanitize(editData.meetingTexts?.successBody || ""),
+        submitButton: sanitize(editData.meetingTexts?.submitButton || ""),
       },
       navbar: {
-        logoText: sanitize(editData.navbar.logoText),
-        navLinks: (editData.navbar.navLinks || []).map(l => sanitize(l)),
-        ctaButton: sanitize(editData.navbar.ctaButton),
+        logoText: sanitize(editData.navbar?.logoText || ""),
+        navLinks: (editData.navbar?.navLinks || []).map(l => sanitize(l)),
+        ctaButton: sanitize(editData.navbar?.ctaButton || ""),
       },
       contact: {
-        badge: sanitize(editData.contact.badge),
-        title: sanitize(editData.contact.title),
-        subtitle: sanitize(editData.contact.subtitle),
-        namePlaceholder: sanitize(editData.contact.namePlaceholder),
-        emailPlaceholder: sanitize(editData.contact.emailPlaceholder),
-        msgPlaceholder: sanitize(editData.contact.msgPlaceholder),
-        sendButton: sanitize(editData.contact.sendButton),
-        successTitle: sanitize(editData.contact.successTitle),
-        successBody: sanitize(editData.contact.successBody),
+        badge: sanitize(editData.contact?.badge || ""),
+        title: sanitize(editData.contact?.title || ""),
+        subtitle: sanitize(editData.contact?.subtitle || ""),
+        namePlaceholder: sanitize(editData.contact?.namePlaceholder || ""),
+        emailPlaceholder: sanitize(editData.contact?.emailPlaceholder || ""),
+        msgPlaceholder: sanitize(editData.contact?.msgPlaceholder || ""),
+        sendButton: sanitize(editData.contact?.sendButton || ""),
+        successTitle: sanitize(editData.contact?.successTitle || ""),
+        successBody: sanitize(editData.contact?.successBody || ""),
       },
       footer: {
-        description: sanitize(editData.footer.description),
-        phone: sanitize(editData.footer.phone),
-        email: sanitize(editData.footer.email),
-        address: sanitize(editData.footer.address),
-        servicesTitle: sanitize(editData.footer.servicesTitle),
-        serviceLinks: (editData.footer.serviceLinks || []).map(l => sanitize(l)),
-        partnersTitle: sanitize(editData.footer.partnersTitle),
-        partnerLinks: (editData.footer.partnerLinks || []).map(l => sanitize(l)),
-        socialTitle: sanitize(editData.footer.socialTitle),
-        newsletterTitle: sanitize(editData.footer.newsletterTitle),
-        newsletterSubtitle: sanitize(editData.footer.newsletterSubtitle),
-        copyrightText: sanitize(editData.footer.copyrightText),
-        legalLinks: (editData.footer.legalLinks || []).map(l => sanitize(l)),
-        statusText: sanitize(editData.footer.statusText),
+        description: sanitize(editData.footer?.description || ""),
+        phone: sanitize(editData.footer?.phone || ""),
+        email: sanitize(editData.footer?.email || ""),
+        address: sanitize(editData.footer?.address || ""),
+        servicesTitle: sanitize(editData.footer?.servicesTitle || ""),
+        serviceLinks: (editData.footer?.serviceLinks || []).map(l => sanitize(l)),
+        partnersTitle: sanitize(editData.footer?.partnersTitle || ""),
+        partnerLinks: (editData.footer?.partnerLinks || []).map(l => sanitize(l)),
+        socialTitle: sanitize(editData.footer?.socialTitle || ""),
+        newsletterTitle: sanitize(editData.footer?.newsletterTitle || ""),
+        newsletterSubtitle: sanitize(editData.footer?.newsletterSubtitle || ""),
+        copyrightText: sanitize(editData.footer?.copyrightText || ""),
+        legalLinks: (editData.footer?.legalLinks || []).map(l => sanitize(l)),
+        statusText: sanitize(editData.footer?.statusText || ""),
       },
     };
 
@@ -510,19 +519,23 @@ export default function App() {
 
   const sendMeeting = async () => {
     const { name, phone, email, date, time, location, address } = meetingForm;
-    if (!name || !phone || !email || !date || !time) { setMeetingErr("Lütfen tüm zorunlu alanları doldurun."); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setMeetingErr("Geçerli bir e-posta adresi girin."); return; }
-    if (location === "youroffice" && !address.trim()) { setMeetingErr("Lütfen adresinizi girin."); return; }
+    const safeName = sanitize(name);
+    const safePhone = sanitize(phone);
+    const safeEmail = sanitize(email);
+    const safeAddress = sanitize(address);
+    if (!safeName || !safePhone || !safeEmail || !date || !time) { setMeetingErr("Lütfen tüm zorunlu alanları doldurun."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail)) { setMeetingErr("Geçerli bir e-posta adresi girin."); return; }
+    if (location === "youroffice" && !safeAddress.trim()) { setMeetingErr("Lütfen adresinizi girin."); return; }
     setMeetingSending(true); setMeetingErr("");
     const locationLabels = { ouroffice: "Bizim Ofisimiz", youroffice: "Sizin Ofisiniz/İş Yeriniz", online: "Online (Zoom/Meet)" };
-    const locationText = locationLabels[location] || location;
-    const addressLine = location === "youroffice" ? "\nAdres: " + sanitize(address) : "";
-    const msgBody = "RANDEVU TALEBİ\n\nAd Soyad: " + sanitize(name) + "\nTelefon: " + sanitize(phone) + "\nE-posta: " + sanitize(email) + "\nTarih: " + date + "\nSaat: " + time + "\nLokasyon: " + locationText + addressLine;
+    const locationText = locationLabels[location] || sanitize(location);
+    const addressLine = location === "youroffice" ? "\nAdres: " + safeAddress : "";
+    const msgBody = "RANDEVU TALEBİ\n\nAd Soyad: " + safeName + "\nTelefon: " + safePhone + "\nE-posta: " + safeEmail + "\nTarih: " + sanitize(date) + "\nSaat: " + sanitize(time) + "\nLokasyon: " + locationText + addressLine;
     try {
       const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey } = settings;
       if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) throw new Error("EmailJS bilgileri yapılandırılmamış.");
       if (!window.emailjs) { await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); window.emailjs.init(emailjsPublicKey); }
-      await window.emailjs.send(emailjsServiceId, emailjsTemplateId, { from_name: sanitize(name), from_email: sanitize(email), message: msgBody, subject: "Randevu Talebi: " + sanitize(name) + " – " + date + " " + time });
+      await window.emailjs.send(emailjsServiceId, emailjsTemplateId, { from_name: safeName, from_email: safeEmail, message: msgBody, subject: "Randevu Talebi: " + safeName + " – " + sanitize(date) + " " + sanitize(time) });
       setMeetingSent(true);
     } catch (err) { setMeetingErr(err.message || "Gönderim hatası."); } finally { setMeetingSending(false); }
   };
@@ -647,21 +660,21 @@ export default function App() {
                     <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Layout size={18} color={editData.theme.primary} /> Navbar Metinleri</h4>
                     <div style={{ marginBottom: 16 }}>
                       <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>Logo Metni</label>
-                      <input value={editData.navbar.logoText} onChange={e => setEditData({ ...editData, navbar: { ...editData.navbar, logoText: e.target.value } })} style={inpStyles} />
+                      <input value={editData.navbar?.logoText || ""} onChange={e => setEditData({ ...editData, navbar: { ...editData.navbar, logoText: e.target.value } })} style={inpStyles} />
                     </div>
                     <div style={{ marginBottom: 16 }}>
                       <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>CTA Butonu</label>
-                      <input value={editData.navbar.ctaButton} onChange={e => setEditData({ ...editData, navbar: { ...editData.navbar, ctaButton: e.target.value } })} style={inpStyles} />
+                      <input value={editData.navbar?.ctaButton || ""} onChange={e => setEditData({ ...editData, navbar: { ...editData.navbar, ctaButton: e.target.value } })} style={inpStyles} />
                     </div>
                     <div>
                       <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 12, textTransform: "uppercase" }}>Navigasyon Linkleri</label>
-                      {(editData.navbar.navLinks || []).map((link, i) => (
+                      {(editData.navbar?.navLinks || []).map((link, i) => (
                         <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                          <input value={link} onChange={e => { const n = [...editData.navbar.navLinks]; n[i] = e.target.value; setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: n } }); }} style={{ ...inpStyles, flex: 1 }} />
-                          <button onClick={() => { const n = editData.navbar.navLinks.filter((_, idx) => idx !== i); setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: n } }); }} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", width: 40, borderRadius: 8, cursor: "pointer", flexShrink: 0 }}><X size={14} /></button>
+                          <input value={link || ""} onChange={e => { const n = [...(editData.navbar?.navLinks || [])]; n[i] = e.target.value; setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: n } }); }} style={{ ...inpStyles, flex: 1 }} />
+                          <button onClick={() => { const n = (editData.navbar?.navLinks || []).filter((_, idx) => idx !== i); setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: n } }); }} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", width: 40, borderRadius: 8, cursor: "pointer", flexShrink: 0 }}><X size={14} /></button>
                         </div>
                       ))}
-                      <button onClick={() => setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: [...(editData.navbar.navLinks || []), "Yeni Link"] } })} style={{ padding: "10px 16px", border: "1px dashed rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.05)", color: "#c084fc", borderRadius: 8, cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", gap: 8, fontSize: 13, marginTop: 4 }}>
+                      <button onClick={() => setEditData({ ...editData, navbar: { ...editData.navbar, navLinks: [...(editData.navbar?.navLinks || []), "Yeni Link"] } })} style={{ padding: "10px 16px", border: "1px dashed rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.05)", color: "#c084fc", borderRadius: 8, cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", gap: 8, fontSize: 13, marginTop: 4 }}>
                         <Plus size={14} /> Link Ekle
                       </button>
                     </div>
@@ -857,7 +870,7 @@ export default function App() {
                         "Teklif Al" Buton Metni
                       </label>
                       <input
-                        value={editData.navbar.ctaButton || ""}
+                        value={editData.navbar?.ctaButton || ""}
                         onChange={e => setEditData({ ...editData, navbar: { ...editData.navbar, ctaButton: e.target.value } })}
                         style={inpStyles}
                         placeholder="Örn: Teklif Al, Toplantı Planla..."
@@ -1127,12 +1140,12 @@ export default function App() {
 
                   <div style={{ background: "rgba(255,255,255,0.02)", padding: 20, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
                     <label style={{ display: "block", fontSize: 12, color: "#94a3b8", fontWeight: 700, marginBottom: 8 }}>E-posta Konusu (Subject)</label>
-                    <input value={editData.emailTemplates.subject} onChange={e => setEditData({ ...editData, emailTemplates: { ...editData.emailTemplates, subject: e.target.value } })} style={inpStyles} />
+                    <input value={editData.emailTemplates?.subject || ""} onChange={e => setEditData({ ...editData, emailTemplates: { ...editData.emailTemplates, subject: e.target.value } })} style={inpStyles} />
                   </div>
 
                   <div style={{ background: "rgba(255,255,255,0.02)", padding: 20, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
                     <label style={{ display: "block", fontSize: 12, color: "#94a3b8", fontWeight: 700, marginBottom: 8 }}>Mesaj İçeriği (Body)</label>
-                    <textarea value={editData.emailTemplates.body} onChange={e => setEditData({ ...editData, emailTemplates: { ...editData.emailTemplates, body: e.target.value } })} style={{ ...inpStyles, minHeight: 150, resize: "vertical" }} />
+                    <textarea value={editData.emailTemplates?.body || ""} onChange={e => setEditData({ ...editData, emailTemplates: { ...editData.emailTemplates, body: e.target.value } })} style={{ ...inpStyles, minHeight: 150, resize: "vertical" }} />
                   </div>
                 </div>
               )}
@@ -1152,10 +1165,10 @@ export default function App() {
                       <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>Uygun Günler</label>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                         {["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"].map(day => {
-                          const active = (editData.workingHours.days || []).includes(day);
+                          const active = (editData.workingHours?.days || []).includes(day);
                           return (
                             <button key={day} onClick={() => {
-                              const current = editData.workingHours.days || [];
+                              const current = editData.workingHours?.days || [];
                               const updated = active ? current.filter(d => d !== day) : [...current, day];
                               setEditData({ ...editData, workingHours: { ...editData.workingHours, days: updated } });
                             }} style={{
@@ -1176,13 +1189,13 @@ export default function App() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
                         <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>Başlangıç Saati</label>
-                        <input type="time" value={editData.workingHours.startTime}
+                        <input type="time" value={editData.workingHours?.startTime || "09:00"}
                           onChange={e => setEditData({ ...editData, workingHours: { ...editData.workingHours, startTime: e.target.value } })}
                           style={inpStyles} />
                       </div>
                       <div>
                         <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>Bitiş Saati</label>
-                        <input type="time" value={editData.workingHours.endTime}
+                        <input type="time" value={editData.workingHours?.endTime || "18:00"}
                           onChange={e => setEditData({ ...editData, workingHours: { ...editData.workingHours, endTime: e.target.value } })}
                           style={inpStyles} />
                       </div>
@@ -1205,9 +1218,9 @@ export default function App() {
                       <div key={key} style={{ marginBottom: 16 }}>
                         <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
                         {key === "successBody" ? (
-                          <textarea value={editData.meetingTexts[key]} onChange={e => setEditData({ ...editData, meetingTexts: { ...editData.meetingTexts, [key]: e.target.value } })} style={{ ...inpStyles, minHeight: 80, resize: "vertical" }} />
+                          <textarea value={editData.meetingTexts?.[key] || ""} onChange={e => setEditData({ ...editData, meetingTexts: { ...editData.meetingTexts, [key]: e.target.value } })} style={{ ...inpStyles, minHeight: 80, resize: "vertical" }} />
                         ) : (
-                          <input value={editData.meetingTexts[key]} onChange={e => setEditData({ ...editData, meetingTexts: { ...editData.meetingTexts, [key]: e.target.value } })} style={inpStyles} />
+                          <input value={editData.meetingTexts?.[key] || ""} onChange={e => setEditData({ ...editData, meetingTexts: { ...editData.meetingTexts, [key]: e.target.value } })} style={inpStyles} />
                         )}
                       </div>
                     ))}
@@ -1216,10 +1229,10 @@ export default function App() {
                   {/* Canlı Önizleme */}
                   <div style={{ background: "rgba(168,85,247,0.05)", border: "1px dashed rgba(168,85,247,0.3)", padding: 20, borderRadius: 12 }}>
                     <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Önizleme</p>
-                    <p style={{ fontSize: 14, color: "#c084fc", fontWeight: 800, marginBottom: 4 }}>{editData.meetingTexts.modalTitle}</p>
-                    <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10 }}>{editData.meetingTexts.modalSubtitle}</p>
-                    <p style={{ fontSize: 12, color: "#94a3b8" }}>📍 {editData.meetingTexts.locationLabel}</p>
-                    <p style={{ fontSize: 12, color: "#22c55e", marginTop: 8 }}>✅ {editData.meetingTexts.successTitle}</p>
+                    <p style={{ fontSize: 14, color: "#c084fc", fontWeight: 800, marginBottom: 4 }}>{editData.meetingTexts?.modalTitle || ""}</p>
+                    <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10 }}>{editData.meetingTexts?.modalSubtitle || ""}</p>
+                    <p style={{ fontSize: 12, color: "#94a3b8" }}>📍 {editData.meetingTexts?.locationLabel || ""}</p>
+                    <p style={{ fontSize: 12, color: "#22c55e", marginTop: 8 }}>✅ {editData.meetingTexts?.successTitle || ""}</p>
                   </div>
                 </div>
               )}
@@ -1230,7 +1243,7 @@ export default function App() {
                   <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
                     <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Shield size={18} color={editData.theme.primary} /> Güvenlik Ayarları</h4>
                     <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase" }}>Yeni Admin Şifresi</label>
-                    <input type="password" placeholder="Şifreyi değiştirmek için yazın..." value={editSettings.adminPass} onChange={e => setEditSettings({ ...editSettings, adminPass: e.target.value })} style={inpStyles} />
+                    <input type="password" placeholder="Şifreyi değiştirmek için yazın..." value={editSettings.adminPass || ""} onChange={e => setEditSettings({ ...editSettings, adminPass: e.target.value })} style={inpStyles} />
                   </div>
 
                   <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -1238,7 +1251,7 @@ export default function App() {
                     {["emailjsServiceId", "emailjsTemplateId", "emailjsPublicKey"].map(key => (
                       <div key={key} style={{ marginBottom: 16 }}>
                         <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase" }}>{key.replace("emailjs", "")}</label>
-                        <input value={editSettings[key]} onChange={e => setEditSettings({ ...editSettings, [key]: e.target.value })} style={inpStyles} placeholder="API Key Giriniz..." />
+                        <input value={editSettings[key] || ""} onChange={e => setEditSettings({ ...editSettings, [key]: e.target.value })} style={inpStyles} placeholder="API Key Giriniz..." />
                       </div>
                     ))}
                   </div>
@@ -1286,8 +1299,6 @@ export default function App() {
     );
   }
 
-  // ==========================================
-  // VIEW: MAIN PUBLIC SITE
   // ==========================================
   // VIEW: MAIN PUBLIC SITE
   // ==========================================
