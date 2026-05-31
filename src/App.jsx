@@ -188,6 +188,37 @@ const initData = {
     navLinks: ["Hizmetler", "Referanslar", "İletişim"],
     ctaButton: "Toplantı Planla",
   },
+  globalTexts: {
+    heroPrimaryButton: "Ücretsiz Danışmanlık Al",
+    heroSecondaryButton: "Hizmetlerimizi Gör",
+    servicesSection: "Hizmetlerimiz",
+    testimonialsSection: "Referanslarımız",
+    testimonialsStarCount: "5",
+    contactSendButton: "Mesaj Gönder",
+    navbarCtaButton: "Toplantı Planla",
+    meetingSubmitButton: "Randevu Oluştur",
+    footerNewsletterButton: "Abone Ol",
+    footerStatusText: "Tüm sistemler çalışıyor",
+    warningRequired: "Bu alan zorunludur.",
+    warningEmail: "Geçerli bir e-posta adresi girin.",
+    warningFill: "Lütfen tüm zorunlu alanları doldurun.",
+  },
+  logo: {
+    text: "DECHA",
+    colorFrom: "#c084fc",
+    colorMid: "#a855f7",
+    colorTo: "#9333ea",
+    fontSize: "26",
+    letterSpacing: "-2px",
+  },
+  iconSizes: {
+    serviceIcon: "36",
+    navbarIcon: "20",
+    footerIcon: "16",
+    heroIcon: "20",
+    badgeIcon: "14",
+    ctaIcon: "18",
+  },
   contact: {
     badge: "İletişim",
     title: "Haydi Başlayalım",
@@ -262,6 +293,185 @@ const ServiceIcon = ({ iconKey, size = 36, theme }) => {
   );
 };
 
+// Live Preview Component — renders key site sections from editData with interaction isolation
+function LivePreview({ editData }) {
+  const pt = editData.theme;
+  const ps = editData.spacing;
+  const noClick = { pointerEvents: "none" };
+
+  const previewStyle = `
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+    .lp-root *, .lp-root *::before, .lp-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @keyframes lp-shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    @keyframes lp-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @keyframes lp-fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .lp-root { font-family: 'DM Sans', sans-serif; background: ${pt.background}; color: ${pt.textMain}; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .lp-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;border:1px solid ${pt.primary}40;background:${pt.primary}10;color:${pt.secondary};font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px; }
+    .lp-btn-primary { background:linear-gradient(135deg,${pt.secondary},${pt.primary});color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:14px;font-weight:700;cursor:default;font-family:'DM Sans',sans-serif;pointer-events:none; }
+    .lp-btn-secondary { background:transparent;color:${pt.textMain};border:1.5px solid ${pt.border};padding:14px 28px;border-radius:50px;font-size:14px;font-weight:600;cursor:default;font-family:'DM Sans',sans-serif;pointer-events:none; }
+    .lp-svc-card { background:${pt.cardBg};border:1px solid ${pt.border};border-radius:${ps.cardRadius};padding:28px;backdrop-filter:blur(16px); }
+    .lp-testi-card { background:${pt.cardBg};border:1px solid ${pt.border};border-radius:${ps.cardRadius};padding:28px;backdrop-filter:blur(16px); }
+    .lp-form-input { width:100%;padding:13px 16px;background:${pt.cardBg};border:1px solid ${pt.border};border-radius:12px;color:${pt.textMain};font-size:14px;font-family:'DM Sans',sans-serif;outline:none; }
+    .lp-nav-link { color:${pt.textMuted};background:none;border:none;font-size:14px;font-weight:500;cursor:default;font-family:'DM Sans',sans-serif;pointer-events:none; }
+    .lp-marquee-track { display:flex;width:max-content;animation:lp-marquee 28s linear infinite; }
+    .lp-brand-pill { display:inline-flex;align-items:center;gap:8px;padding:9px 22px;border:1px solid ${pt.border};border-radius:100px;background:${pt.cardBg};white-space:nowrap;font-size:13px;font-weight:600;color:${pt.textMuted};margin:0 10px; }
+  `;
+
+  const BRANDS_P = ["Trendyol","Getir","Yemeksepeti","Hepsiburada","n11","Migros","A101","Koçtaş","MediaMarkt","Bim"];
+
+  return (
+    <div className="lp-root" style={{ minHeight: "100vh" }}>
+      <style>{previewStyle}</style>
+
+      {/* ── NAVBAR ── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, padding: "0 32px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: `${pt.background}ee`, backdropFilter: "blur(20px)", borderBottom: `1px solid ${pt.border}` }}>
+        <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: "-2px", background: `linear-gradient(135deg,${pt.secondary} 0%,${pt.primary} 50%,${pt.primaryHover} 100%)`, backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "lp-shimmer 4s linear infinite", display: "inline-block" }}>
+          {editData.navbar?.logoText || "DECHA"}
+        </span>
+        <div style={{ display: "flex", gap: 24 }}>
+          {(editData.navbar?.navLinks || ["Hizmetler","Referanslar","İletişim"]).map((label, idx) => (
+            <button key={idx} className="lp-nav-link" style={noClick}>{label}</button>
+          ))}
+        </div>
+        <button className="lp-btn-primary" style={{ ...noClick, padding: "10px 20px", fontSize: 13 }}>
+          {editData.navbar?.ctaButton || "Toplantı Planla"}
+        </button>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section style={{ position: "relative", minHeight: "80vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: `${ps.heroPadding} 32px 64px`, overflow: "hidden", background: pt.background }}>
+        <div style={{ position: "absolute", top: "10%", left: "15%", width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle,${pt.primary}18 0%,transparent 70%)`, filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "10%", right: "10%", width: 280, height: 280, borderRadius: "50%", background: `radial-gradient(circle,${pt.secondary}14 0%,transparent 70%)`, filter: "blur(80px)", pointerEvents: "none" }} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 760 }}>
+          <span className="lp-badge"><Sparkles size={11} /> Dijital Büyüme Ajansı</span>
+          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(36px, 5vw, 68px)", lineHeight: 1.05, letterSpacing: "-3px", marginBottom: 14, color: pt.textMain }}>
+            {editData.hero?.h1 || "Görünür Ol,"}<br />
+            <span style={{ background: `linear-gradient(135deg,${pt.secondary} 0%,${pt.primary} 50%,${pt.primaryHover} 100%)`, backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "lp-shimmer 4s linear infinite" }}>
+              {editData.hero?.h2 || "Büyü, Kazan."}
+            </span>
+          </h1>
+          <p style={{ fontSize: 16, lineHeight: 1.7, color: pt.textMuted, maxWidth: 540, margin: "0 auto 36px", fontWeight: 400 }}>
+            {editData.hero?.sub || ""}
+          </p>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <button className="lp-btn-primary" style={noClick}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><Rocket size={15} /> {editData.navbar?.ctaButton || "Toplantı Planla"}</span></button>
+            <button className="lp-btn-secondary" style={noClick}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><MessageSquare size={15} /> Sizi Arayalım</span></button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── MARQUEE ── */}
+      <section style={{ padding: "24px 0", borderTop: `1px solid ${pt.border}`, borderBottom: `1px solid ${pt.border}`, background: `linear-gradient(90deg,${pt.background} 0%,${pt.primary}06 50%,${pt.background} 100%)`, overflow: "hidden", position: "relative" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(90deg,${pt.background},transparent)`, zIndex: 2, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 80, background: `linear-gradient(270deg,${pt.background},transparent)`, zIndex: 2, pointerEvents: "none" }} />
+        <div style={{ display: "flex", overflow: "hidden" }}>
+          <div className="lp-marquee-track">
+            {[...BRANDS_P, ...BRANDS_P].map((brand, i) => (
+              <span key={i} className="lp-brand-pill">
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: `${pt.primary}70`, display: "inline-block" }} />{brand}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SERVICES ── */}
+      <section style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}06,transparent)` }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <span className="lp-badge"><Layers size={11} /> Hizmetlerimiz</span>
+            <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(26px, 3.5vw, 46px)", letterSpacing: "-2px", color: pt.textMain, marginBottom: 14 }}>
+              Her Adımda<br /><span style={{ background: `linear-gradient(135deg,${pt.secondary},${pt.primary})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Yanınızdayız</span>
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 20 }}>
+            {(editData.services || []).map((svc) => {
+              const IconComp = ICON_MAP[svc.iconKey] || Globe;
+              return (
+                <div key={svc.id} className="lp-svc-card">
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: `${pt.primary}15`, border: `1px solid ${pt.primary}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                    <IconComp size={26} color={pt.primary} strokeWidth={1.4} />
+                  </div>
+                  <span style={{ display: "inline-block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: pt.secondary, marginBottom: 8 }}>{svc.tag}</span>
+                  <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 17, fontWeight: 900, color: pt.textMain, marginBottom: 10, letterSpacing: "-0.5px", lineHeight: 1.2 }}>{svc.title}</h3>
+                  <p style={{ fontSize: 13, lineHeight: 1.7, color: pt.textMuted }}>{svc.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      {(editData.testimonials || []).length > 0 && (
+        <section style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}05,transparent)` }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 48 }}>
+              <span className="lp-badge"><Star size={11} /> Başarı Hikayeleri</span>
+              <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(24px, 3.5vw, 44px)", letterSpacing: "-2px", color: pt.textMain }}>
+                Müşterilerimiz Ne Diyor?
+              </h2>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 20 }}>
+              {(editData.testimonials || []).map((t) => (
+                <div key={t.id} className="lp-testi-card">
+                  <div style={{ display: "flex", gap: 3, marginBottom: 14 }}>
+                    {[...Array(5)].map((_, i) => <Star key={i} size={13} color={pt.primary} fill={pt.primary} />)}
+                  </div>
+                  <p style={{ fontSize: 14, lineHeight: 1.75, color: pt.textMuted, marginBottom: 20, fontStyle: "italic" }}>"{t.text}"</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, borderTop: `1px solid ${pt.border}`, paddingTop: 16 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: "50%", background: `linear-gradient(135deg,${pt.secondary},${pt.primary})`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 14, color: "#fff", flexShrink: 0 }}>{t.initials}</div>
+                    <div>
+                      <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, color: pt.textMain }}>{t.name}</div>
+                      <div style={{ fontSize: 12, color: pt.textMuted }}>{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── CONTACT ── */}
+      <section style={{ padding: `${ps.sectionPadding} 32px` }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <span className="lp-badge"><Send size={11} /> {editData.contact?.badge || "İletişim"}</span>
+            <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(24px, 3.5vw, 40px)", letterSpacing: "-2px", color: pt.textMain, marginBottom: 12 }}>
+              {editData.contact?.title || "Haydi Başlayalım"}
+            </h2>
+            <p style={{ fontSize: 15, color: pt.textMuted, lineHeight: 1.7 }}>{editData.contact?.subtitle || ""}</p>
+          </div>
+          <div style={{ background: pt.cardBg, border: `1px solid ${pt.border}`, borderRadius: 24, padding: 36, backdropFilter: "blur(16px)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, pointerEvents: "none" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <input className="lp-form-input" placeholder={editData.contact?.namePlaceholder || "Adınız Soyadınız"} readOnly style={noClick} />
+                <input className="lp-form-input" placeholder={editData.contact?.emailPlaceholder || "E-posta Adresiniz"} readOnly style={noClick} />
+              </div>
+              <textarea className="lp-form-input" placeholder={editData.contact?.msgPlaceholder || "Projenizi anlatın..."} rows={4} style={{ ...noClick, resize: "none" }} readOnly />
+              <button className="lp-btn-primary" style={{ ...noClick, width: "100%", padding: "16px", fontSize: 14 }}>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <Send size={15} /> {editData.contact?.sendButton || "Mesaj Gönder"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER (minimal) ── */}
+      <footer style={{ borderTop: `1px solid ${pt.border}`, padding: "32px", background: `${pt.background}`, textAlign: "center" }}>
+        <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 18, letterSpacing: "-1.5px", background: `linear-gradient(135deg,${pt.secondary},${pt.primary})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "lp-shimmer 4s linear infinite", display: "inline-block", marginBottom: 10 }}>
+          {editData.navbar?.logoText || "DECHA"}
+        </div>
+        <p style={{ fontSize: 13, color: pt.textMuted, marginBottom: 6, lineHeight: 1.6 }}>{editData.footer?.description || ""}</p>
+        <p style={{ fontSize: 12, color: pt.textMuted }}>{(editData.footer?.copyrightText || "").replace("{year}", new Date().getFullYear())}</p>
+      </footer>
+    </div>
+  );
+}
+
 // Main App Component
 export default function App() {
   const [data, setData] = useState(initData);
@@ -287,6 +497,7 @@ export default function App() {
   const [dbReady, setDbReady] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sliderIndex, setSliderIndex] = useState(0);
+  const [previewMode, setPreviewMode] = useState("desktop"); // "desktop" | "mobile"
 
   // Meeting modal state
   const [meetingOpen, setMeetingOpen] = useState(false);
@@ -325,6 +536,7 @@ export default function App() {
             workingHours: { ...initData.workingHours, ...(row.workingHours || {}), days: Array.isArray(row.workingHours?.days) ? row.workingHours.days : initData.workingHours.days },
             meetingTexts: { ...initData.meetingTexts, ...(row.meetingTexts || {}) },
             navbar: { ...initData.navbar, ...(row.navbar || {}), navLinks: Array.isArray(row.navbar?.navLinks) ? row.navbar.navLinks : initData.navbar.navLinks },
+            globalTexts: { ...initData.globalTexts, ...(row.globalTexts || {}) },
             contact: { ...initData.contact, ...(row.contact || {}) },
             footer: { ...initData.footer, ...(row.footer || {}), serviceLinks: Array.isArray(row.footer?.serviceLinks) ? row.footer.serviceLinks : initData.footer.serviceLinks, partnerLinks: Array.isArray(row.footer?.partnerLinks) ? row.footer.partnerLinks : initData.footer.partnerLinks, legalLinks: Array.isArray(row.footer?.legalLinks) ? row.footer.legalLinks : initData.footer.legalLinks },
           });
@@ -411,6 +623,9 @@ export default function App() {
         navLinks: (editData.navbar?.navLinks || []).map(l => sanitize(l)),
         ctaButton: sanitize(editData.navbar?.ctaButton || ""),
       },
+      globalTexts: Object.fromEntries(
+        Object.entries(editData.globalTexts || {}).map(([k, v]) => [k, sanitize(v)])
+      ),
       contact: {
         badge: sanitize(editData.contact?.badge || ""),
         title: sanitize(editData.contact?.title || ""),
@@ -565,6 +780,7 @@ export default function App() {
   const TABS = [
     { key: "hero", label: "Hero Alanı", Icon: Home },
     { key: "navbar", label: "Navbar", Icon: Layout },
+    { key: "globalTexts", label: "Global Metinler", Icon: MessageSquare },
     { key: "services", label: "Hizmetler", Icon: Zap },
     { key: "testimonials", label: "Referanslar", Icon: MessageSquare },
     { key: "contact", label: "İletişim Bölümü", Icon: Send },
@@ -585,13 +801,35 @@ export default function App() {
     return (
       <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#0c0c1c", color: "#e2e8f0", fontFamily: "DM Sans, sans-serif", overflow: "hidden" }}>
 
-        {/* Sidebar */}
-        <div style={{ width: sidebarOpen ? 280 : 80, background: "#07070f", borderRight: "1px solid rgba(168,85,247,0.15)", display: "flex", flexDirection: "column", transition: "width 0.3s", flexShrink: 0 }}>
+        {/* ===== LEFT COLUMN: Control Panel (450px fixed) ===== */}
+        <div style={{ width: sidebarOpen ? 450 : 64 + 186, minWidth: sidebarOpen ? 450 : 64 + 186, display: "flex", flexDirection: "row", height: "100vh", flexShrink: 0, borderRight: "1px solid rgba(168,85,247,0.2)", transition: "width 0.3s" }}>
 
-          <div style={{ padding: "24px 20px", display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        {/* Sidebar */}
+        <div style={{ width: sidebarOpen ? 220 : 64, background: "#07070f", borderRight: "1px solid rgba(168,85,247,0.15)", display: "flex", flexDirection: "column", transition: "width 0.3s", flexShrink: 0, height: "100vh" }}>
+
+          <div style={{ padding: "24px 16px", display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {sidebarOpen && <div style={{ display: "flex", alignItems: "center", gap: 10 }}><Logo size="sm" theme={editData.theme} /></div>}
             <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
               <PanelLeftClose size={20} style={{ transform: sidebarOpen ? "none" : "rotate(180deg)", transition: "transform 0.3s" }} />
+            </button>
+          </div>
+
+          <div style={{ padding: "12px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <button
+              onClick={() => setEditData(JSON.parse(JSON.stringify(data)))}
+              title="Değişiklikleri İptal Et"
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: sidebarOpen ? "10px 14px" : "10px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.25)",
+                background: "rgba(239,68,68,0.07)", color: "#f87171", cursor: "pointer",
+                fontSize: 13, fontWeight: 600, width: "100%",
+                justifyContent: sidebarOpen ? "flex-start" : "center", transition: "all 0.2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.15)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.45)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,0.07)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.25)"; }}
+            >
+              <X size={16} />
+              {sidebarOpen && <span>Değişiklikleri İptal Et</span>}
             </button>
           </div>
 
@@ -611,14 +849,6 @@ export default function App() {
           </div>
 
           <div style={{ padding: "20px 12px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 8 }}>
-            <button onClick={closeAdmin} style={{
-              display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)",
-              background: "rgba(255,255,255,0.02)", color: "#e2e8f0", cursor: "pointer", fontSize: 14, fontWeight: 600,
-              justifyContent: sidebarOpen ? "flex-start" : "center", transition: "all 0.2s"
-            }}>
-              <Globe size={18} />
-              {sidebarOpen && <span>Siteye Dön</span>}
-            </button>
             <button onClick={logout} style={{
               display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, border: "none",
               background: "rgba(239,68,68,0.1)", color: "#f87171", cursor: "pointer", fontSize: 14, fontWeight: 600,
@@ -630,28 +860,102 @@ export default function App() {
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Main Content Area (scrollable form panel) */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", height: "100vh" }}>
 
           {/* Topbar (Sticky) */}
-          <div style={{ height: 70, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", zIndex: 10 }}>
+          <div style={{ height: 70, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px", zIndex: 10, flexShrink: 0 }}>
             <div>
-              <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, margin: 0, color: "#f8fafc" }}>
+              <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 17, margin: 0, color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
                 {TABS.find(t => t.key === tab)?.label}
               </h2>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {saved && <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={16} /> Değişiklikler Kaydedildi</span>}
-              {saveErr && <span style={{ color: "#f87171", fontSize: 13, fontWeight: 600 }}>⚠️ {saveErrMsg}</span>}
-              <button onClick={save} style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", padding: "10px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(168,85,247,0.3)" }}>
-                <Save size={16} /> Tümünü Kaydet
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {saved && <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={14} /> Kaydedildi</span>}
+              {saveErr && <span style={{ color: "#f87171", fontSize: 12, fontWeight: 600 }}>⚠️ Hata</span>}
+              <button onClick={save} style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", padding: "9px 16px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 14px rgba(168,85,247,0.3)" }}>
+                <Save size={14} /> Tümünü Kaydet
               </button>
             </div>
           </div>
 
           {/* Scrollable Content */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "40px 32px" }}>
-            <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "28px 20px" }}>
+            <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+
+              {/* GLOBAL TEXTS TAB */}
+              {tab === "globalTexts" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  {/* Buton Metinleri */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(168,85,247,0.15)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Zap size={18} color={editData.theme.primary} /> Buton Metinleri</h4>
+                    {[
+                      ["heroPrimaryButton", "Hero Ana Buton"],
+                      ["heroSecondaryButton", "Hero İkincil Buton"],
+                      ["contactSendButton", "İletişim Formu Gönder Butonu"],
+                      ["navbarCtaButton", "Navbar CTA Butonu"],
+                      ["meetingSubmitButton", "Toplantı Formu Gönder Butonu"],
+                      ["footerNewsletterButton", "Footer Bülten Abone Butonu"],
+                    ].map(([key, label]) => (
+                      <div key={key} style={{ marginBottom: 16 }}>
+                        <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                        <input
+                          value={editData.globalTexts?.[key] || ""}
+                          onChange={e => setEditData({ ...editData, globalTexts: { ...editData.globalTexts, [key]: e.target.value } })}
+                          style={inpStyles}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Bölüm Başlıkları */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(168,85,247,0.15)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Layout size={18} color={editData.theme.primary} /> Bölüm Etiketleri</h4>
+                    {[
+                      ["servicesSection", "Hizmetler Bölümü Başlık Etiketi"],
+                      ["testimonialsSection", "Referanslar Bölümü Başlık Etiketi"],
+                      ["footerStatusText", "Footer Durum Metni"],
+                    ].map(([key, label]) => (
+                      <div key={key} style={{ marginBottom: 16 }}>
+                        <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                        <input
+                          value={editData.globalTexts?.[key] || ""}
+                          onChange={e => setEditData({ ...editData, globalTexts: { ...editData.globalTexts, [key]: e.target.value } })}
+                          style={inpStyles}
+                        />
+                      </div>
+                    ))}
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>Referans Yıldız Sayısı (1–5)</label>
+                      <input
+                        type="number" min="1" max="5"
+                        value={editData.globalTexts?.testimonialsStarCount || "5"}
+                        onChange={e => setEditData({ ...editData, globalTexts: { ...editData.globalTexts, testimonialsStarCount: e.target.value } })}
+                        style={{ ...inpStyles, width: 100 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Uyarı Metinleri */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(168,85,247,0.15)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Bell size={18} color={editData.theme.primary} /> Uyarı / Hata Metinleri</h4>
+                    {[
+                      ["warningRequired", "Zorunlu Alan Uyarısı"],
+                      ["warningEmail", "Geçersiz E-posta Uyarısı"],
+                      ["warningFill", "Eksik Alan Uyarısı"],
+                    ].map(([key, label]) => (
+                      <div key={key} style={{ marginBottom: 16 }}>
+                        <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                        <input
+                          value={editData.globalTexts?.[key] || ""}
+                          onChange={e => setEditData({ ...editData, globalTexts: { ...editData.globalTexts, [key]: e.target.value } })}
+                          style={inpStyles}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* NAVBAR TAB */}
               {tab === "navbar" && (
@@ -705,9 +1009,35 @@ export default function App() {
                     <div key={svc.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 16, padding: 24 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                         <h4 style={{ margin: 0, color: "#c084fc", fontFamily: "Syne, sans-serif" }}>Hizmet Kutu #{i + 1}</h4>
-                        <button onClick={() => setEditData({ ...editData, services: editData.services.filter((_, idx) => idx !== i) })} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", padding: "6px 12px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600 }}>
-                          <Trash2 size={14} /> Sil
-                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            onClick={() => {
+                              if (i === 0) return;
+                              const arr = [...editData.services];
+                              [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+                              setEditData({ ...editData, services: arr });
+                            }}
+                            disabled={i === 0}
+                            title="Yukarı Taşı"
+                            style={{ background: i === 0 ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.1)", border: "none", color: i === 0 ? "#334155" : "#c084fc", padding: "6px 10px", borderRadius: 6, cursor: i === 0 ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}>
+                            ↑ Yukarı
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (i === editData.services.length - 1) return;
+                              const arr = [...editData.services];
+                              [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                              setEditData({ ...editData, services: arr });
+                            }}
+                            disabled={i === editData.services.length - 1}
+                            title="Aşağı Taşı"
+                            style={{ background: i === editData.services.length - 1 ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.1)", border: "none", color: i === editData.services.length - 1 ? "#334155" : "#c084fc", padding: "6px 10px", borderRadius: 6, cursor: i === editData.services.length - 1 ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}>
+                            ↓ Aşağı
+                          </button>
+                          <button onClick={() => setEditData({ ...editData, services: editData.services.filter((_, idx) => idx !== i) })} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", padding: "6px 12px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600 }}>
+                            <Trash2 size={14} /> Sil
+                          </button>
+                        </div>
                       </div>
 
                       <div style={{ display: "flex", gap: 20, marginBottom: 16 }}>
@@ -746,9 +1076,35 @@ export default function App() {
                     <div key={t.id || i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 16, padding: 24 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                         <h4 style={{ margin: 0, color: "#c084fc", fontFamily: "Syne, sans-serif" }}>Yorum #{i + 1}</h4>
-                        <button onClick={() => setEditData({ ...editData, testimonials: editData.testimonials.filter((_, idx) => idx !== i) })} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", padding: "6px 12px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600 }}>
-                          <Trash2 size={14} /> Sil
-                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            onClick={() => {
+                              if (i === 0) return;
+                              const arr = [...editData.testimonials];
+                              [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+                              setEditData({ ...editData, testimonials: arr });
+                            }}
+                            disabled={i === 0}
+                            title="Yukarı Taşı"
+                            style={{ background: i === 0 ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.1)", border: "none", color: i === 0 ? "#334155" : "#c084fc", padding: "6px 10px", borderRadius: 6, cursor: i === 0 ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}>
+                            ↑ Yukarı
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (i === editData.testimonials.length - 1) return;
+                              const arr = [...editData.testimonials];
+                              [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                              setEditData({ ...editData, testimonials: arr });
+                            }}
+                            disabled={i === editData.testimonials.length - 1}
+                            title="Aşağı Taşı"
+                            style={{ background: i === editData.testimonials.length - 1 ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.1)", border: "none", color: i === editData.testimonials.length - 1 ? "#334155" : "#c084fc", padding: "6px 10px", borderRadius: 6, cursor: i === editData.testimonials.length - 1 ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}>
+                            ↓ Aşağı
+                          </button>
+                          <button onClick={() => setEditData({ ...editData, testimonials: editData.testimonials.filter((_, idx) => idx !== i) })} style={{ background: "rgba(239,68,68,0.1)", border: "none", color: "#f87171", padding: "6px 12px", borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600 }}>
+                            <Trash2 size={14} /> Sil
+                          </button>
+                        </div>
                       </div>
                       <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                         <div style={{ flex: 2 }}>
@@ -1122,12 +1478,91 @@ export default function App() {
               {/* SPACING TAB */}
               {tab === "spacing" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                  {Object.entries(editData.spacing).map(([key, val]) => (
-                    <div key={key} style={{ background: "rgba(255,255,255,0.02)", padding: 20, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <label style={{ display: "block", fontSize: 12, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "capitalize" }}>{key.replace(/([A-Z])/g, ' $1').trim()}</label>
-                      <input type="text" value={val} onChange={e => setEditData({ ...editData, spacing: { ...editData.spacing, [key]: e.target.value } })} style={inpStyles} placeholder="Örn: 100px veya 5rem" />
+
+                  {/* Mevcut Boşluk Değerleri */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><MoveVertical size={18} color={editData.theme.primary} /> Boşluk Değerleri</h4>
+                    {Object.entries(editData.spacing).map(([key, val]) => (
+                      <div key={key} style={{ marginBottom: 16 }}>
+                        <label style={{ display: "block", fontSize: 12, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "capitalize" }}>{key.replace(/([A-Z])/g, ' $1').trim()}</label>
+                        <input type="text" value={val} onChange={e => setEditData({ ...editData, spacing: { ...editData.spacing, [key]: e.target.value } })} style={inpStyles} placeholder="Örn: 100px veya 5rem" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Border Radius */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Layout size={18} color={editData.theme.primary} /> Kenar Yuvarlama (Border-Radius)</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      {[
+                        ["cardRadius", "Kart Köşe Yuvarlaması"],
+                        ["buttonRadius", "Buton Köşe Yuvarlaması"],
+                        ["inputRadius", "Input Köşe Yuvarlaması"],
+                        ["badgeRadius", "Badge/Etiket Köşe Yuvarlaması"],
+                      ].map(([key, label]) => (
+                        <div key={key}>
+                          <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                          <input
+                            type="text"
+                            value={editData.spacing?.[key] || ""}
+                            onChange={e => setEditData({ ...editData, spacing: { ...editData.spacing, [key]: e.target.value } })}
+                            style={inpStyles}
+                            placeholder="Örn: 16px, 50px, 1rem"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Gölge Opaklığı */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Layers size={18} color={editData.theme.primary} /> Gölge Opaklığı</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      {[
+                        ["cardShadowOpacity", "Kart Gölgesi Opaklığı (0.0–1.0)"],
+                        ["heroGlowOpacity", "Hero Parıltı Opaklığı (0.0–1.0)"],
+                        ["buttonGlowOpacity", "Buton Parıltı Opaklığı (0.0–1.0)"],
+                      ].map(([key, label]) => (
+                        <div key={key}>
+                          <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                          <input
+                            type="number" step="0.05" min="0" max="1"
+                            value={editData.spacing?.[key] || "0.25"}
+                            onChange={e => setEditData({ ...editData, spacing: { ...editData.spacing, [key]: e.target.value } })}
+                            style={{ ...inpStyles, width: "100%" }}
+                            placeholder="0.25"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Başlık Font Boyutları */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <h4 style={{ margin: "0 0 20px 0", color: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}><Sparkles size={18} color={editData.theme.primary} /> Başlık Font Boyutları</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      {[
+                        ["heroH1FontSize", "Hero H1 Font Boyutu"],
+                        ["heroH2FontSize", "Hero H2 Font Boyutu"],
+                        ["sectionTitleFontSize", "Bölüm Başlığı Font Boyutu"],
+                        ["cardTitleFontSize", "Kart Başlığı Font Boyutu"],
+                        ["navbarFontSize", "Navbar Link Font Boyutu"],
+                        ["footerFontSize", "Footer Metin Font Boyutu"],
+                      ].map(([key, label]) => (
+                        <div key={key}>
+                          <label style={{ display: "block", fontSize: 11, color: "#94a3b8", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>{label}</label>
+                          <input
+                            type="text"
+                            value={editData.spacing?.[key] || ""}
+                            onChange={e => setEditData({ ...editData, spacing: { ...editData.spacing, [key]: e.target.value } })}
+                            style={inpStyles}
+                            placeholder="Örn: 48px, 2.5rem"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               )}
 
@@ -1261,6 +1696,68 @@ export default function App() {
             </div>
           </div>
         </div>
+        {/* ===== END LEFT COLUMN ===== */}
+        </div>
+
+        {/* ===== RIGHT COLUMN: Live Preview ===== */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a18", overflow: "hidden" }}>
+
+          {/* Preview Topbar */}
+          <div style={{ height: 70, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e88" }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>Canlı Önizleme</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 10, padding: "4px 6px" }}>
+              <button
+                onClick={() => setPreviewMode("desktop")}
+                title="Masaüstü Görünüm"
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
+                  background: previewMode === "desktop" ? "rgba(168,85,247,0.25)" : "transparent",
+                  color: previewMode === "desktop" ? "#c084fc" : "#64748b",
+                }}
+              >
+                <Monitor size={14} /> Masaüstü
+              </button>
+              <button
+                onClick={() => setPreviewMode("mobile")}
+                title="Mobil Görünüm"
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
+                  background: previewMode === "mobile" ? "rgba(168,85,247,0.25)" : "transparent",
+                  color: previewMode === "mobile" ? "#c084fc" : "#64748b",
+                }}
+              >
+                <Smartphone size={14} /> Mobil
+              </button>
+            </div>
+            <button onClick={closeAdmin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#94a3b8", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#f8fafc"; e.currentTarget.style.borderColor = "rgba(168,85,247,0.4)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+            >
+              <Globe size={14} /> Siteye Dön
+            </button>
+          </div>
+
+          {/* Preview Area */}
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: previewMode === "mobile" ? "24px 16px" : "0", background: previewMode === "mobile" ? "#060610" : "transparent" }}>
+            <div style={{
+              width: previewMode === "mobile" ? 400 : "100%",
+              height: previewMode === "mobile" ? "auto" : "100%",
+              minHeight: previewMode === "mobile" ? 700 : "100%",
+              borderRadius: previewMode === "mobile" ? 24 : 0,
+              overflow: "hidden",
+              boxShadow: previewMode === "mobile" ? "0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(168,85,247,0.25)" : "none",
+              transition: "width 0.4s cubic-bezier(0.34,1.3,0.64,1), border-radius 0.4s",
+              flexShrink: 0,
+            }}>
+              <LivePreview editData={editData} />
+            </div>
+          </div>
+        </div>
+        {/* ===== END RIGHT COLUMN ===== */}
+
       </div>
     );
   }
@@ -2768,9 +3265,28 @@ export default function App() {
 
           {/* Footer alt bar */}
           <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-            <p style={{ color: theme.textMuted, fontSize: 13 }}>
-              {(data.footer?.copyrightText || "© {year} Decha Digital Agency. Tüm hakları saklıdır.").replace("{year}", new Date().getFullYear())}
-            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <p style={{ color: theme.textMuted, fontSize: 13 }}>
+                {(data.footer?.copyrightText || "© {year} Decha Digital Agency. Tüm hakları saklıdır.").replace("{year}", new Date().getFullYear())}
+              </p>
+              <button
+                onClick={() => setAdminOpen(true)}
+                title="Admin Paneli"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  background: "none", border: "none", cursor: "pointer",
+                  color: theme.textMuted, fontSize: 12, fontWeight: 600,
+                  fontFamily: "DM Sans, sans-serif", padding: "4px 8px",
+                  borderRadius: 6, transition: "color 0.2s, background 0.2s",
+                  letterSpacing: 0.3,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = theme.primary; e.currentTarget.style.background = `${theme.primary}12`; }}
+                onMouseLeave={e => { e.currentTarget.style.color = theme.textMuted; e.currentTarget.style.background = "none"; }}
+              >
+                <Lock size={11} />
+                Admin
+              </button>
+            </div>
             <div style={{ display: "flex", gap: 24 }}>
               {(data.footer?.legalLinks || ["Gizlilik Politikası", "Kullanım Şartları", "Çerez Politikası"]).map(item => (
                 <button key={item} className="footer-link" style={{ fontSize: 12 }}>{item}</button>
@@ -2941,23 +3457,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Admin Trigger */}
-      <button
-        onClick={() => setAdminOpen(true)}
-        title="Admin Panel"
-        style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 999,
-          width: 48, height: 48, borderRadius: "50%",
-          background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
-          border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 8px 24px ${theme.primary}55`,
-          opacity: 0.7, transition: "opacity 0.2s",
-        }}
-        onMouseEnter={e => e.currentTarget.style.opacity = 1}
-        onMouseLeave={e => e.currentTarget.style.opacity = 0.7}
-      >
-        <Settings size={20} color="#fff" />
-      </button>
     </>
   );
 }
