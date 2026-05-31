@@ -762,10 +762,11 @@ export default function App() {
   const spacing = data.spacing;
 
   const inpStyles = {
-    width: "100%", padding: "11px 14px", borderRadius: 8,
-    background: "rgba(255,255,255,0.04)", border: `1px solid ${theme.border}`,
-    color: theme.textMain, fontSize: 14, outline: "none", boxSizing: "border-box",
+    width: "100%", padding: "13px 18px", borderRadius: 10,
+    background: "rgba(255,255,255,0.05)", border: `1px solid ${theme.border}`,
+    color: theme.textMain, fontSize: 15, outline: "none", boxSizing: "border-box",
     fontFamily: "DM Sans, sans-serif", transition: "border-color 0.2s",
+    lineHeight: 1.5,
   };
 
   const cardStyle = (id) => ({
@@ -799,88 +800,64 @@ export default function App() {
   // ==========================================
   if (adminOpen && authed && editData && editSettings) {
     return (
-      <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#0c0c1c", color: "#e2e8f0", fontFamily: "DM Sans, sans-serif", overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100vw", background: "#0c0c1c", color: "#e2e8f0", fontFamily: "DM Sans, sans-serif", overflow: "hidden" }}>
+        {/* ===== STACKED LAYOUT WRAPPER ===== */}
 
-        {/* ===== LEFT COLUMN: Control Panel (450px fixed) ===== */}
-        <div style={{ width: sidebarOpen ? 450 : 64 + 186, minWidth: sidebarOpen ? 450 : 64 + 186, display: "flex", flexDirection: "row", height: "100vh", flexShrink: 0, borderRight: "1px solid rgba(168,85,247,0.2)", transition: "width 0.3s" }}>
-
-        {/* Sidebar */}
-        <div style={{ width: sidebarOpen ? 220 : 64, background: "#07070f", borderRight: "1px solid rgba(168,85,247,0.15)", display: "flex", flexDirection: "column", transition: "width 0.3s", flexShrink: 0, height: "100vh" }}>
-
-          <div style={{ padding: "24px 16px", display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            {sidebarOpen && <div style={{ display: "flex", alignItems: "center", gap: 10 }}><Logo size="sm" theme={editData.theme} /></div>}
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
-              <PanelLeftClose size={20} style={{ transform: sidebarOpen ? "none" : "rotate(180deg)", transition: "transform 0.3s" }} />
-            </button>
+        {/* ===== GLOBAL TOP BAR ===== */}
+        <div style={{ height: 64, borderBottom: "1px solid rgba(168,85,247,0.2)", background: "rgba(7,7,15,0.95)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", zIndex: 20, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <Logo size="sm" theme={editData.theme} />
+            <div style={{ width: 1, height: 24, background: "rgba(168,85,247,0.25)" }} />
+            <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 16, margin: 0, color: "#f8fafc" }}>
+              {TABS.find(t => t.key === tab)?.label}
+            </h2>
           </div>
-
-          <div style={{ padding: "12px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {saved && <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={14} /> Kaydedildi</span>}
+            {saveErr && <span style={{ color: "#f87171", fontSize: 12, fontWeight: 600 }}>⚠️ Hata</span>}
             <button
               onClick={() => setEditData(JSON.parse(JSON.stringify(data)))}
               title="Değişiklikleri İptal Et"
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: sidebarOpen ? "10px 14px" : "10px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.25)",
-                background: "rgba(239,68,68,0.07)", color: "#f87171", cursor: "pointer",
-                fontSize: 13, fontWeight: 600, width: "100%",
-                justifyContent: sidebarOpen ? "flex-start" : "center", transition: "all 0.2s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.15)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.45)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,0.07)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.25)"; }}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.07)", color: "#f87171", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.15)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,0.07)"; }}
             >
-              <X size={16} />
-              {sidebarOpen && <span>Değişiklikleri İptal Et</span>}
+              <X size={14} /> İptal
             </button>
-          </div>
-
-          <div style={{ flex: 1, padding: "20px 12px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
-            {sidebarOpen && <div style={{ fontSize: 11, color: "#475569", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, padding: "0 8px", marginBottom: 8 }}>İçerik Yönetimi</div>}
-            {TABS.map(({ key, label, Icon }) => (
-              <button key={key} onClick={() => setTab(key)} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, border: "none",
-                background: tab === key ? "rgba(168,85,247,0.15)" : "transparent",
-                color: tab === key ? "#c084fc" : "#94a3b8", cursor: "pointer", fontSize: 14, fontWeight: 600,
-                justifyContent: sidebarOpen ? "flex-start" : "center", transition: "all 0.2s"
-              }}>
-                <Icon size={18} strokeWidth={tab === key ? 2.5 : 1.5} />
-                {sidebarOpen && <span>{label}</span>}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ padding: "20px 12px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 8 }}>
-            <button onClick={logout} style={{
-              display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, border: "none",
-              background: "rgba(239,68,68,0.1)", color: "#f87171", cursor: "pointer", fontSize: 14, fontWeight: 600,
-              justifyContent: sidebarOpen ? "flex-start" : "center", transition: "all 0.2s"
-            }}>
-              <LogOut size={18} />
-              {sidebarOpen && <span>Çıkış Yap</span>}
+            <button onClick={save} style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", padding: "9px 18px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 14px rgba(168,85,247,0.3)" }}>
+              <Save size={14} /> Tümünü Kaydet
+            </button>
+            <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#94a3b8", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            >
+              <LogOut size={14} /> Çıkış
             </button>
           </div>
         </div>
 
-        {/* Main Content Area (scrollable form panel) */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", height: "100vh" }}>
+        {/* ===== HORIZONTAL TAB NAV ===== */}
+        <div style={{ background: "#07070f", borderBottom: "1px solid rgba(168,85,247,0.15)", display: "flex", alignItems: "center", gap: 2, padding: "0 20px", overflowX: "auto", flexShrink: 0 }}>
+          {TABS.map(({ key, label, Icon }) => (
+            <button key={key} onClick={() => setTab(key)} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "14px 18px", border: "none",
+              background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
+              color: tab === key ? "#c084fc" : "#64748b",
+              borderBottom: tab === key ? "2px solid #a855f7" : "2px solid transparent",
+              transition: "all 0.2s",
+            }}>
+              <Icon size={15} strokeWidth={tab === key ? 2.5 : 1.5} />
+              {label}
+            </button>
+          ))}
+        </div>
 
-          {/* Topbar (Sticky) */}
-          <div style={{ height: 70, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px", zIndex: 10, flexShrink: 0 }}>
-            <div>
-              <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 17, margin: 0, color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
-                {TABS.find(t => t.key === tab)?.label}
-              </h2>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              {saved && <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={14} /> Kaydedildi</span>}
-              {saveErr && <span style={{ color: "#f87171", fontSize: 12, fontWeight: 600 }}>⚠️ Hata</span>}
-              <button onClick={save} style={{ background: "linear-gradient(135deg,#6d28d9,#a855f7)", border: "none", color: "#fff", padding: "9px 16px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 14px rgba(168,85,247,0.3)" }}>
-                <Save size={14} /> Tümünü Kaydet
-              </button>
-            </div>
-          </div>
+        {/* ===== MAIN BODY ===== */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-          {/* Scrollable Content */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "28px 20px" }}>
+        {/* ===== TOP: FORM PANEL (scrollable, ~55% height) ===== */}
+        <div style={{ height: "55%", overflowY: "auto", borderBottom: "1px solid rgba(168,85,247,0.2)", background: "#0c0c1c" }}>
+          <div style={{ maxWidth: 960, margin: "0 auto", padding: "36px 40px" }}>
             <div style={{ maxWidth: "100%", margin: "0 auto" }}>
 
               {/* GLOBAL TEXTS TAB */}
@@ -1696,16 +1673,15 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* ===== END LEFT COLUMN ===== */}
-        </div>
+        {/* ===== END FORM PANEL ===== */}
 
-        {/* ===== RIGHT COLUMN: Live Preview ===== */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a18", overflow: "hidden" }}>
+        {/* ===== BOTTOM: LIVE PREVIEW PANEL (45% height) ===== */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#0a0a18", overflow: "hidden" }}>
 
           {/* Preview Topbar */}
-          <div style={{ height: 70, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
+          <div style={{ height: 52, borderBottom: "1px solid rgba(168,85,247,0.15)", background: "rgba(12,12,28,0.9)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e88" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e88" }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>Canlı Önizleme</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 10, padding: "4px 6px" }}>
@@ -1713,35 +1689,35 @@ export default function App() {
                 onClick={() => setPreviewMode("desktop")}
                 title="Masaüstü Görünüm"
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
+                  display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
                   background: previewMode === "desktop" ? "rgba(168,85,247,0.25)" : "transparent",
                   color: previewMode === "desktop" ? "#c084fc" : "#64748b",
                 }}
               >
-                <Monitor size={14} /> Masaüstü
+                <Monitor size={13} /> Masaüstü
               </button>
               <button
                 onClick={() => setPreviewMode("mobile")}
                 title="Mobil Görünüm"
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
+                  display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.2s",
                   background: previewMode === "mobile" ? "rgba(168,85,247,0.25)" : "transparent",
                   color: previewMode === "mobile" ? "#c084fc" : "#64748b",
                 }}
               >
-                <Smartphone size={14} /> Mobil
+                <Smartphone size={13} /> Mobil
               </button>
             </div>
-            <button onClick={closeAdmin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#94a3b8", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s" }}
+            <button onClick={closeAdmin} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "#94a3b8", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.color = "#f8fafc"; e.currentTarget.style.borderColor = "rgba(168,85,247,0.4)"; }}
               onMouseLeave={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
             >
-              <Globe size={14} /> Siteye Dön
+              <Globe size={13} /> Siteye Dön
             </button>
           </div>
 
           {/* Preview Area */}
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: previewMode === "mobile" ? "24px 16px" : "0", background: previewMode === "mobile" ? "#060610" : "transparent" }}>
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: previewMode === "mobile" ? "20px 16px" : "0", background: previewMode === "mobile" ? "#060610" : "transparent" }}>
             <div style={{
               width: previewMode === "mobile" ? 400 : "100%",
               height: previewMode === "mobile" ? "auto" : "100%",
@@ -1756,7 +1732,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* ===== END RIGHT COLUMN ===== */}
+        {/* ===== END PREVIEW PANEL ===== */}
 
       </div>
     );
