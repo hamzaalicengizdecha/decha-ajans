@@ -1734,6 +1734,9 @@ export default function App() {
         </div>
         {/* ===== END PREVIEW PANEL ===== */}
 
+        </div>
+        {/* ===== END MAIN BODY ===== */}
+
       </div>
     );
   }
