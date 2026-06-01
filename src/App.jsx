@@ -294,10 +294,43 @@ const ServiceIcon = ({ iconKey, size = 36, theme }) => {
 };
 
 // Live Preview Component — renders key site sections from editData with interaction isolation
-function LivePreview({ editData }) {
+function LivePreview({ editData, activeTab }) {
   const pt = editData.theme;
   const ps = editData.spacing;
   const noClick = { pointerEvents: "none" };
+
+  // Scroll container ref — bağlı olduğu div preview area'nın overflowY:auto wrapper'ı
+  const previewScrollRef = React.useRef(null);
+
+  // Tab → section id eşlemesi
+  const TAB_TO_SECTION = {
+    hero:                "lp-sec-hero",
+    navbar:              "lp-sec-hero",
+    globalTexts:         "lp-sec-hero",
+    logo:                "lp-sec-hero",
+    services:            "lp-sec-services",
+    testimonials:        "lp-sec-testimonials",
+    contact:             "lp-sec-contact",
+    contactFormSettings: "lp-sec-contact",
+    footer:              "lp-sec-footer",
+    menuFooterSettings:  "lp-sec-footer",
+  };
+
+  useEffect(() => {
+    const sectionId = TAB_TO_SECTION[activeTab];
+    if (!sectionId) return;
+    // Scroll container önce kendi ref'i, bulamazsa en yakın scrollable atayı dene
+    const container = previewScrollRef.current;
+    if (!container) return;
+    const target = container.querySelector(`#${sectionId}`);
+    if (!target) return;
+    const containerRect = container.getBoundingClientRect();
+    const targetRect   = target.getBoundingClientRect();
+    container.scrollTo({
+      top: container.scrollTop + (targetRect.top - containerRect.top),
+      behavior: "smooth",
+    });
+  }, [activeTab]);
 
   const previewStyle = `
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -320,10 +353,11 @@ function LivePreview({ editData }) {
   const BRANDS_P = ["Trendyol","Getir","Yemeksepeti","Hepsiburada","n11","Migros","A101","Koçtaş","MediaMarkt","Bim"];
 
   return (
-    <div className="lp-root" style={{ minHeight: "100vh" }}>
+    <div ref={previewScrollRef} className="lp-root" style={{ minHeight: "100vh", overflowY: "auto", height: "100%" }}>
       <style>{previewStyle}</style>
 
-      {/* ── NAVBAR ── */}
+      {/* ── NAVBAR + HERO ── */}
+      <div id="lp-sec-hero">
       <nav style={{ position: "sticky", top: 0, zIndex: 100, padding: "0 32px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: `${pt.background}ee`, backdropFilter: "blur(20px)", borderBottom: `1px solid ${pt.border}` }}>
         <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: "-2px", background: `linear-gradient(135deg,${pt.secondary} 0%,${pt.primary} 50%,${pt.primaryHover} 100%)`, backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "lp-shimmer 4s linear infinite", display: "inline-block" }}>
           {editData.navbar?.logoText || "DECHA"}
@@ -359,6 +393,7 @@ function LivePreview({ editData }) {
           </div>
         </div>
       </section>
+      </div>{/* end #lp-sec-hero */}
 
       {/* ── MARQUEE ── */}
       <section style={{ padding: "24px 0", borderTop: `1px solid ${pt.border}`, borderBottom: `1px solid ${pt.border}`, background: `linear-gradient(90deg,${pt.background} 0%,${pt.primary}06 50%,${pt.background} 100%)`, overflow: "hidden", position: "relative" }}>
@@ -376,7 +411,7 @@ function LivePreview({ editData }) {
       </section>
 
       {/* ── SERVICES ── */}
-      <section style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}06,transparent)` }}>
+      <section id="lp-sec-services" style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}06,transparent)` }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <span className="lp-badge"><Layers size={11} /> Hizmetlerimiz</span>
@@ -404,7 +439,7 @@ function LivePreview({ editData }) {
 
       {/* ── TESTIMONIALS ── */}
       {(editData.testimonials || []).length > 0 && (
-        <section style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}05,transparent)` }}>
+        <section id="lp-sec-testimonials" style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}05,transparent)` }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <div style={{ textAlign: "center", marginBottom: 48 }}>
               <span className="lp-badge"><Star size={11} /> Başarı Hikayeleri</span>
@@ -434,7 +469,7 @@ function LivePreview({ editData }) {
       )}
 
       {/* ── CONTACT ── */}
-      <section style={{ padding: `${ps.sectionPadding} 32px` }}>
+      <section id="lp-sec-contact" style={{ padding: `${ps.sectionPadding} 32px` }}>
         <div style={{ maxWidth: 600, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <span className="lp-badge"><Send size={11} /> {editData.contact?.badge || "İletişim"}</span>
@@ -461,7 +496,7 @@ function LivePreview({ editData }) {
       </section>
 
       {/* ── FOOTER (minimal) ── */}
-      <footer style={{ borderTop: `1px solid ${pt.border}`, padding: "32px", background: `${pt.background}`, textAlign: "center" }}>
+      <footer id="lp-sec-footer" style={{ borderTop: `1px solid ${pt.border}`, padding: "32px", background: `${pt.background}`, textAlign: "center" }}>
         <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 18, letterSpacing: "-1.5px", background: `linear-gradient(135deg,${pt.secondary},${pt.primary})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "lp-shimmer 4s linear infinite", display: "inline-block", marginBottom: 10 }}>
           {editData.navbar?.logoText || "DECHA"}
         </div>
@@ -852,11 +887,11 @@ export default function App() {
           ))}
         </div>
 
-        {/* ===== MAIN BODY ===== */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* ===== MAIN BODY — split-screen row ===== */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "row", overflow: "hidden" }}>
 
-        {/* ===== TOP: FORM PANEL (scrollable, ~55% height) ===== */}
-        <div style={{ height: "55%", overflowY: "auto", borderBottom: "1px solid rgba(168,85,247,0.2)", background: "#0c0c1c" }}>
+        {/* ===== LEFT: FORM PANEL (~42% width, kendi içinde scrollable) ===== */}
+        <div style={{ width: "42%", minWidth: 300, flexShrink: 0, overflowY: "auto", borderRight: "1px solid rgba(168,85,247,0.2)", background: "#0c0c1c" }}>
           <div style={{ maxWidth: 960, margin: "0 auto", padding: "36px 40px" }}>
             <div style={{ maxWidth: "100%", margin: "0 auto" }}>
 
@@ -1673,9 +1708,9 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* ===== END FORM PANEL ===== */}
+        {/* ===== END LEFT FORM PANEL ===== */}
 
-        {/* ===== BOTTOM: LIVE PREVIEW PANEL (45% height) ===== */}
+        {/* ===== RIGHT: LIVE PREVIEW PANEL (remaining width, scrollable) ===== */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#0a0a18", overflow: "hidden" }}>
 
           {/* Preview Topbar */}
@@ -1716,23 +1751,22 @@ export default function App() {
             </button>
           </div>
 
-          {/* Preview Area */}
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: previewMode === "mobile" ? "20px 16px" : "0", background: previewMode === "mobile" ? "#060610" : "transparent" }}>
+          {/* Preview Area — overflowY artık LivePreview root div'inde */}
+          <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: previewMode === "mobile" ? "20px 16px" : "0", background: previewMode === "mobile" ? "#060610" : "transparent", overflow: "hidden" }}>
             <div style={{
               width: previewMode === "mobile" ? 400 : "100%",
-              height: previewMode === "mobile" ? "auto" : "100%",
-              minHeight: previewMode === "mobile" ? 700 : "100%",
+              height: "100%",
               borderRadius: previewMode === "mobile" ? 24 : 0,
               overflow: "hidden",
               boxShadow: previewMode === "mobile" ? "0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(168,85,247,0.25)" : "none",
               transition: "width 0.4s cubic-bezier(0.34,1.3,0.64,1), border-radius 0.4s",
               flexShrink: 0,
             }}>
-              <LivePreview editData={editData} />
+              <LivePreview editData={editData} activeTab={tab} />
             </div>
           </div>
         </div>
-        {/* ===== END PREVIEW PANEL ===== */}
+        {/* ===== END RIGHT PREVIEW PANEL ===== */}
 
         </div>
         {/* ===== END MAIN BODY ===== */}
