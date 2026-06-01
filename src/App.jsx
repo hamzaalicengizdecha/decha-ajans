@@ -148,9 +148,7 @@ const initData = {
     { id: 3, iconKey: "Globe", tag: "Tasarım & Geliştirme", title: "Web Site Kurulumu", desc: "Hızlı, mobil uyumlu ve dönüşüm odaklı web siteleri." },
     { id: 4, iconKey: "ShoppingBag", tag: "E-Ticaret", title: "Platform Mağaza Kurulumu", desc: "Trendyol, Yemeksepeti ve Getir'de profesyonel mağaza kurulumu." },
   ],
-  testimonials: [
-    { id: 1, name: "Ahmet Yılmaz", role: "Restoran Sahibi", initials: "AY", text: "Decha ile Yemeksepeti mağazamı kurdum. 3 ayda siparişlerim 4 katına çıktı!" },
-  ],
+  testimonials: [],
   theme: {
     primary: "#a855f7",
     primaryHover: "#9333ea",
@@ -438,15 +436,28 @@ function LivePreview({ editData, activeTab }) {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      {(editData.testimonials || []).length > 0 && (
-        <section id="lp-sec-testimonials" style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}05,transparent)` }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <span className="lp-badge"><Star size={11} /> Başarı Hikayeleri</span>
-              <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(24px, 3.5vw, 44px)", letterSpacing: "-2px", color: pt.textMain }}>
-                Müşterilerimiz Ne Diyor?
-              </h2>
+      <section id="lp-sec-testimonials" style={{ padding: `${ps.sectionPadding} 32px`, background: `linear-gradient(180deg,transparent,${pt.primary}05,transparent)` }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <span className="lp-badge"><Star size={11} /> Başarı Hikayeleri</span>
+            <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: "clamp(24px, 3.5vw, 44px)", letterSpacing: "-2px", color: pt.textMain }}>
+              Müşterilerimiz Ne Diyor?
+            </h2>
+          </div>
+          {(editData.testimonials || []).length === 0 ? (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              gap: 12, padding: "40px 24px",
+              background: `${pt.cardBg}`, border: `1px dashed ${pt.primary}25`,
+              borderRadius: 20, textAlign: "center",
+            }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${pt.primary}10`, border: `1px solid ${pt.primary}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Star size={20} color={pt.primary} strokeWidth={1.4} />
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: pt.textMain, margin: 0 }}>Değerlendirmelerinizi Bekliyoruz</p>
+              <p style={{ fontSize: 13, color: pt.textMuted, margin: 0 }}>Admin panelinden referans eklendiğinde burada görünecek.</p>
             </div>
+          ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 20 }}>
               {(editData.testimonials || []).map((t) => (
                 <div key={t.id} className="lp-testi-card">
@@ -464,9 +475,9 @@ function LivePreview({ editData, activeTab }) {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
       {/* ── CONTACT ── */}
       <section id="lp-sec-contact" style={{ padding: `${ps.sectionPadding} 32px` }}>
@@ -2829,84 +2840,111 @@ export default function App() {
               </p>
             </div>
 
-            {/* Carousel controls */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button className="carousel-btn"
-                onClick={() => setSliderIndex(i => Math.max(0, i - 1))}
-                style={{ opacity: sliderIndex === 0 ? 0.35 : 1 }}>
-                <ChevronRight size={20} style={{ transform: "rotate(180deg)" }} />
-              </button>
-              <div style={{ display: "flex", gap: 6 }}>
-                {Array.from({ length: Math.max(1, data.testimonials.length - 1) }).map((_, i) => (
-                  <button key={i} onClick={() => setSliderIndex(i)} style={{
-                    width: sliderIndex === i ? 24 : 8, height: 8, borderRadius: 4, border: "none", cursor: "pointer",
-                    background: sliderIndex === i ? theme.primary : theme.border,
-                    transition: "all 0.3s", padding: 0,
-                  }} />
-                ))}
+            {/* Carousel controls — sadece referans varsa göster */}
+            {data.testimonials.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <button className="carousel-btn"
+                  onClick={() => setSliderIndex(i => Math.max(0, i - 1))}
+                  style={{ opacity: sliderIndex === 0 ? 0.35 : 1 }}>
+                  <ChevronRight size={20} style={{ transform: "rotate(180deg)" }} />
+                </button>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {Array.from({ length: Math.max(1, data.testimonials.length - 1) }).map((_, i) => (
+                    <button key={i} onClick={() => setSliderIndex(i)} style={{
+                      width: sliderIndex === i ? 24 : 8, height: 8, borderRadius: 4, border: "none", cursor: "pointer",
+                      background: sliderIndex === i ? theme.primary : theme.border,
+                      transition: "all 0.3s", padding: 0,
+                    }} />
+                  ))}
+                </div>
+                <button className="carousel-btn"
+                  onClick={() => setSliderIndex(i => Math.min(data.testimonials.length - 2, i + 1))}
+                  style={{ opacity: sliderIndex >= data.testimonials.length - 2 ? 0.35 : 1 }}>
+                  <ChevronRight size={20} />
+                </button>
               </div>
-              <button className="carousel-btn"
-                onClick={() => setSliderIndex(i => Math.min(data.testimonials.length - 2, i + 1))}
-                style={{ opacity: sliderIndex >= data.testimonials.length - 2 ? 0.35 : 1 }}>
-                <ChevronRight size={20} />
-              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Boş durum */}
+        {data.testimonials.length === 0 ? (
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 40px" }}>
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              gap: 16, padding: "64px 40px",
+              background: `${theme.cardBg}`, border: `1px dashed ${theme.primary}30`,
+              borderRadius: 24, backdropFilter: "blur(12px)",
+              textAlign: "center",
+            }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: "50%",
+                background: `${theme.primary}10`, border: `1px solid ${theme.primary}25`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Star size={26} color={theme.primary} strokeWidth={1.4} />
+              </div>
+              <h3 style={{
+                fontFamily: "Syne, sans-serif", fontWeight: 900,
+                fontSize: "clamp(20px, 2.5vw, 28px)", letterSpacing: "-1px",
+                color: theme.textMain, margin: 0,
+              }}>
+                Değerlendirmelerinizi Bekliyoruz
+              </h3>
+              <p style={{ fontSize: 15, color: theme.textMuted, maxWidth: 380, lineHeight: 1.7, margin: 0 }}>
+                Müşteri yorumları burada görünecek. Yeni referanslar eklendiğinde bu alan otomatik olarak dolacak.
+              </p>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Slider track — sadece referans varsa render et */
+          <div style={{ overflow: "hidden", padding: "8px 0 32px" }}>
+            <div style={{
+              display: "flex", gap: 24,
+              transform: `translateX(calc(-${sliderIndex * 440}px + 40px))`,
+              transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+              paddingLeft: 40, paddingRight: 40,
+            }}>
+              {data.testimonials.map((t) => (
+                <div key={t.id} className="testi-slide-card">
+                  {/* Quote mark */}
+                  <div style={{ fontFamily: "Syne, sans-serif", fontSize: 64, lineHeight: 0.8, color: `${theme.primary}30`, fontWeight: 900, marginBottom: 4, userSelect: "none" }}>"</div>
 
-        {/* Slider track */}
-        <div style={{ overflow: "hidden", padding: "8px 0 32px" }}>
-          <div style={{
-            display: "flex", gap: 24,
-            transform: `translateX(calc(-${sliderIndex * 440}px + 40px))`,
-            transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1)",
-            paddingLeft: 40, paddingRight: 40,
-          }}>
-            {[
-              ...data.testimonials,
-              { id: "x1", name: "Zeynep Kara", role: "Butik Sahibi · İstanbul", initials: "ZK", text: "Decha ekibiyle çalışmaya başladıktan 2 ay sonra Instagram satışlarımız 3 katına çıktı. Influencer seçimlerindeki hassasiyetleri inanılmaz." },
-              { id: "x2", name: "Mert Özkan", role: "E-ticaret Girişimcisi", initials: "MÖ", text: "Amazon FBA konusunda hiçbir fikrim yokken, Decha'nın E-ihracat danışmanlığıyla artık 14 ülkeye satış yapıyorum. Süreç inanılmaz akıcıydı." },
-              { id: "x3", name: "Selin Arslan", role: "Kozmetik Markası Kurucusu", initials: "SA", text: "Google Ads harcamamızı %40 düşürürken dönüşümlerimizi ikiye katladılar. Veri odaklı yaklaşımları gerçekten fark yaratıyor." },
-              { id: "x4", name: "Burak Yıldız", role: "Trendyol Satıcısı", initials: "BY", text: "Pazaryeri danışmanlığı hizmetleri sayesinde Trendyol'da ilk ayda 800+ sipariş aldım. Mağaza kurulumundan kampanya yönetimine her şey mükemmeldi." },
-            ].map((t) => (
-              <div key={t.id} className="testi-slide-card">
-                {/* Quote mark */}
-                <div style={{ fontFamily: "Syne, sans-serif", fontSize: 64, lineHeight: 0.8, color: `${theme.primary}30`, fontWeight: 900, marginBottom: 4, userSelect: "none" }}>"</div>
+                  {/* Stars */}
+                  <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
+                    {[1,2,3,4,5].map(s => <Star key={s} size={16} fill={theme.primary} color={theme.primary} />)}
+                  </div>
 
-                {/* Stars */}
-                <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
-                  {[1,2,3,4,5].map(s => <Star key={s} size={16} fill={theme.primary} color={theme.primary} />)}
-                </div>
-
-                {/* Quote */}
-                <p style={{
-                  fontSize: 17, lineHeight: 1.7, color: theme.textMain,
-                  fontWeight: 600, marginBottom: 32, flex: 1,
-                  fontStyle: "italic",
-                }}>
-                  {t.text}
-                </p>
-
-                {/* Author */}
-                <div style={{ display: "flex", alignItems: "center", gap: 16, borderTop: `1px solid ${theme.border}`, paddingTop: 24 }}>
-                  <div style={{
-                    width: 52, height: 52, borderRadius: "50%", flexShrink: 0,
-                    background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 16, color: "#fff",
-                    boxShadow: `0 0 0 3px ${theme.primary}30`,
+                  {/* Quote */}
+                  <p style={{
+                    fontSize: 17, lineHeight: 1.7, color: theme.textMain,
+                    fontWeight: 600, marginBottom: 32, flex: 1,
+                    fontStyle: "italic",
                   }}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 16, color: theme.textMain, letterSpacing: "-0.3px" }}>{t.name}</div>
-                    <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 2 }}>{t.role}</div>
+                    {t.text}
+                  </p>
+
+                  {/* Author */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, borderTop: `1px solid ${theme.border}`, paddingTop: 24 }}>
+                    <div style={{
+                      width: 52, height: 52, borderRadius: "50%", flexShrink: 0,
+                      background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "Syne, sans-serif", fontWeight: 900, fontSize: 16, color: "#fff",
+                      boxShadow: `0 0 0 3px ${theme.primary}30`,
+                    }}>
+                      {t.initials}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 16, color: theme.textMain, letterSpacing: "-0.3px" }}>{t.name}</div>
+                      <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 2 }}>{t.role}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ── CONTACT SECTION ── */}
