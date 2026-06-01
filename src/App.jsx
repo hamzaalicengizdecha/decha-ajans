@@ -546,6 +546,8 @@ export default function App() {
   const [previewMode, setPreviewMode] = useState("desktop"); // "desktop" | "mobile"
 
   // Meeting modal state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({
     name: "", phone: "", email: "",
@@ -1863,13 +1865,18 @@ export default function App() {
           to { opacity: 1; }
         }
 
-        html { scroll-behavior: smooth; }
+        html {
+          scroll-behavior: smooth;
+          overflow-x: hidden;
+          width: 100%;
+        }
 
         body {
           background: ${theme.background};
           color: ${theme.textMain};
           font-family: 'DM Sans', sans-serif;
           overflow-x: hidden;
+          width: 100%;
           -webkit-font-smoothing: antialiased;
         }
 
@@ -2382,6 +2389,219 @@ export default function App() {
           pointer-events: none;
           animation: gridFade 1.2s ease both;
         }
+
+        /* ── HAMBURGEr BUTTON ── */
+        .ham-line {
+          display: block;
+          width: 22px; height: 2px;
+          background: ${theme.textMain};
+          border-radius: 2px;
+          transition: transform 0.3s ease, opacity 0.3s ease;
+          transform-origin: center;
+        }
+        .ham-line-1-open { transform: translateY(7px) rotate(45deg); }
+        .ham-line-2-open { opacity: 0; transform: scaleX(0); }
+        .ham-line-3-open { transform: translateY(-7px) rotate(-45deg); }
+
+        /* ── MOBILE RESPONSIVE ── */
+        @media (max-width: 767px) {
+
+          /* Navbar */
+          .nav-links-desktop { display: none !important; }
+          .nav-cta-desktop   { display: none !important; }
+          .hamburger-btn     { display: flex !important; }
+
+          nav {
+            padding: 0 20px !important;
+          }
+
+          /* Hero */
+          #hero {
+            padding: 40px 20px 60px !important;
+          }
+
+          #hero h1 {
+            font-size: clamp(32px, 9vw, 52px) !important;
+            letter-spacing: -1.5px !important;
+          }
+
+          #hero p {
+            font-size: 15px !important;
+            margin-bottom: 32px !important;
+          }
+
+          .hero-cta-wrap {
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+
+          .hero-cta-wrap .cta-primary,
+          .hero-cta-wrap .cta-secondary {
+            width: 100% !important;
+            max-width: 320px !important;
+            justify-content: center !important;
+          }
+
+          /* ── GRID: Hizmetler 2→1 sütun ── */
+          .grid-services-wrap {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* ── GRID: Biz Kimiz 2→1 sütun ── */
+          .grid-who-wrap {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+
+          /* ── GRID: Sosyal Medya asimetrik→1 sütun ── */
+          .grid-social-wrap {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto !important;
+          }
+          .grid-social-wrap .social-grid-item {
+            grid-row: auto !important;
+            min-height: 200px;
+          }
+
+          /* ── GRID: Akademi 3fr 2fr→1 sütun ── */
+          .grid-edu-wrap {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* ── FORM: İletişim formu Ad/E-posta → alt alta ── */
+          .grid-contact-fields {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* ── CAROUSEL: Testi kartı mobil genişlik ── */
+          .testi-slide-card {
+            min-width: 85vw !important;
+            max-width: 85vw !important;
+            padding: 24px !important;
+          }
+
+          /* ── MEETING MODAl: yan yana grid'ler → tek sütun ── */
+          .grid-meeting-row {
+            grid-template-columns: 1fr !important;
+          }
+
+          .meeting-modal {
+            border-radius: 20px !important;
+            max-height: 95vh !important;
+          }
+
+          .meeting-modal > div:last-child {
+            padding: 20px 20px 28px !important;
+          }
+
+          /* ── TOUCH TARGETS: min 44px yükseklik ── */
+          .cta-primary,
+          .cta-secondary {
+            min-height: 48px !important;
+            padding-top: 14px !important;
+            padding-bottom: 14px !important;
+          }
+
+          .form-input,
+          .meeting-input {
+            min-height: 48px !important;
+            padding: 13px 16px !important;
+            font-size: 16px !important; /* iOS zoom önleme */
+          }
+
+          .nav-link {
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+          }
+
+          .mobile-nav-link {
+            min-height: 52px !important;
+          }
+
+          .carousel-btn {
+            width: 48px !important;
+            height: 48px !important;
+          }
+
+          .detail-btn {
+            min-height: 48px !important;
+            padding: 13px 22px !important;
+          }
+
+          .meeting-loc-btn {
+            min-height: 72px !important;
+            padding: 12px 8px !important;
+          }
+
+          /* ── GLOBAL: overflow-x sıkı kilidi ── */
+          html, body {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+          }
+
+          /* ── PERFORMANS: Glow & blur efektlerini hafiflet ── */
+          .grid-bg::before {
+            display: none !important;
+          }
+          .brand-pill,
+          .service-card,
+          .main-svc-card,
+          .testimonial-card,
+          .testi-slide-card,
+          .edu-card,
+          .blog-card,
+          .social-grid-item,
+          .stat-chip,
+          .who-video-box,
+          .section-badge,
+          .sub-badge,
+          .cta-secondary,
+          .carousel-btn,
+          .footer-social-btn {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+          /* Hero ambient blob'larını gizle */
+          .hero-blob {
+            display: none !important;
+          }
+
+          /* ── FOOTER: 4 sütun → tek sütun ── */
+          .footer-grid-cols {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+            text-align: center !important;
+          }
+          .footer-grid-cols > div {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          .footer-grid-cols .footer-link {
+            text-align: center !important;
+            width: 100% !important;
+          }
+          .footer-grid-cols > div:first-child p {
+            max-width: 100% !important;
+          }
+          .footer-grid-cols > div > div[style*="flex-direction: column"] {
+            align-items: center !important;
+          }
+          /* Footer alt bar */
+          .footer-bottom-bar {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 12px !important;
+            text-align: center !important;
+          }
+          .footer-bottom-bar > div:first-child {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
+        }
       `}</style>
 
       {/* ── NAVBAR ── */}
@@ -2395,17 +2615,66 @@ export default function App() {
         transition: "all 0.4s",
       }}>
         <Logo size="md" theme={theme} />
-        <div style={{ display: "flex", gap: 32 }}>
+
+        {/* Desktop nav links */}
+        <div className="nav-links-desktop" style={{ display: "flex", gap: 32 }}>
           {(data.navbar?.navLinks || ["Hizmetler", "Referanslar", "İletişim"]).map((label, idx) => {
             const ids = ["services", "testimonials", "contact"];
             return <button key={idx} className="nav-link" onClick={() => scrollTo(ids[idx] || label.toLowerCase())}>{label}</button>;
           })}
         </div>
-        <button className="cta-primary" style={{ padding: "11px 24px", fontSize: 14, animation: "none" }}
+
+        {/* Desktop CTA button */}
+        <button className="cta-primary nav-cta-desktop" style={{ padding: "11px 24px", fontSize: 14, animation: "none" }}
           onClick={() => setMeetingOpen(true)}>
           {data.navbar?.ctaButton || "Toplantı Planla"}
         </button>
+
+        {/* Hamburger button — mobile only */}
+        <button
+          className="hamburger-btn"
+          onClick={() => setMobileMenuOpen(v => !v)}
+          aria-label="Menüyü Aç/Kapat"
+          style={{
+            display: "none",
+            flexDirection: "column", justifyContent: "center", alignItems: "center",
+            gap: 5, width: 40, height: 40,
+            background: "none", border: "none", cursor: "pointer", padding: 6,
+          }}
+        >
+          <span className={`ham-line ${mobileMenuOpen ? "ham-line-1-open" : ""}`} />
+          <span className={`ham-line ${mobileMenuOpen ? "ham-line-2-open" : ""}`} />
+          <span className={`ham-line ${mobileMenuOpen ? "ham-line-3-open" : ""}`} />
+        </button>
       </nav>
+
+      {/* ── MOBILE MENU DROPDOWN ── */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu" style={{
+          position: "fixed", top: 68, left: 0, right: 0, zIndex: 999,
+          background: `${theme.background}f5`,
+          backdropFilter: "blur(20px)",
+          borderBottom: `1px solid ${theme.border}`,
+          padding: "20px 24px 28px",
+          display: "flex", flexDirection: "column", gap: 4,
+          animation: "fadeUp 0.25s ease both",
+        }}>
+          {(data.navbar?.navLinks || ["Hizmetler", "Referanslar", "İletişim"]).map((label, idx) => {
+            const ids = ["services", "testimonials", "contact"];
+            return (
+              <button key={idx} className="nav-link mobile-nav-link"
+                style={{ padding: "14px 4px", fontSize: 16, textAlign: "left", borderBottom: `1px solid ${theme.border}` }}
+                onClick={() => { setMobileMenuOpen(false); scrollTo(ids[idx] || label.toLowerCase()); }}>
+                {label}
+              </button>
+            );
+          })}
+          <button className="cta-primary" style={{ animation: "none", marginTop: 16, width: "100%", padding: "14px", fontSize: 15 }}
+            onClick={() => { setMobileMenuOpen(false); setMeetingOpen(true); }}>
+            {data.navbar?.ctaButton || "Toplantı Planla"}
+          </button>
+        </div>
+      )}
 
       {/* ── HERO SECTION ── */}
       <section id="hero" className="grid-bg" style={{
@@ -2416,8 +2685,8 @@ export default function App() {
         overflow: "hidden",
       }}>
         {/* Ambient blobs */}
-        <div style={{ position: "absolute", top: "10%", left: "15%", width: 480, height: 480, borderRadius: "50%", background: `radial-gradient(circle, ${theme.primary}18 0%, transparent 70%)`, filter: "blur(60px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "10%", right: "10%", width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle, ${theme.secondary}14 0%, transparent 70%)`, filter: "blur(80px)", pointerEvents: "none" }} />
+        <div className="hero-blob hero-blob-1" style={{ position: "absolute", top: "10%", left: "15%", width: 480, height: 480, borderRadius: "50%", background: `radial-gradient(circle, ${theme.primary}18 0%, transparent 70%)`, filter: "blur(60px)", pointerEvents: "none" }} />
+        <div className="hero-blob hero-blob-2" style={{ position: "absolute", bottom: "10%", right: "10%", width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle, ${theme.secondary}14 0%, transparent 70%)`, filter: "blur(80px)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: 840, margin: "0 auto" }}>
           <div className="hero-animate hero-animate-1">
@@ -2428,7 +2697,7 @@ export default function App() {
 
           <h1 className="hero-animate hero-animate-2" style={{
             fontFamily: "Syne, sans-serif", fontWeight: 900,
-            fontSize: "clamp(48px, 7vw, 86px)", lineHeight: 1.05,
+            fontSize: "clamp(36px, 7vw, 86px)", lineHeight: 1.05,
             letterSpacing: "-3px", marginBottom: 16,
             color: theme.textMain,
           }}>
@@ -2450,7 +2719,7 @@ export default function App() {
             {data.hero.sub}
           </p>
 
-          <div className="hero-animate hero-animate-4" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="hero-animate hero-animate-4 hero-cta-wrap" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <button className="cta-primary" onClick={() => setMeetingOpen(true)}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Rocket size={16} /> {data.navbar?.ctaButton || "Toplantı Planla"}
@@ -2496,7 +2765,7 @@ export default function App() {
 
       {/* ── BİZ KİMİZ SECTION ── */}
       <section style={{ padding: `${spacing.sectionPadding} 40px`, maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+        <div className="grid-who-wrap" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
 
           {/* Left: Text */}
           <div>
@@ -2609,7 +2878,7 @@ export default function App() {
           </div>
 
           {/* Main 4 service cards — 2x2 grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
+          <div className="grid-services-wrap" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
 
             {/* Card 1 — E-Ticaret */}
             <div className="main-svc-card"
@@ -2731,7 +3000,7 @@ export default function App() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 28 }}>
+          <div className="grid-edu-wrap" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 28 }}>
 
             {/* Akademi Card */}
             <div className="edu-card" style={{ background: `linear-gradient(135deg, ${theme.primary}12, ${theme.secondary}08)`, borderColor: `${theme.primary}30` }}>
@@ -2969,7 +3238,7 @@ export default function App() {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                <div className="grid-contact-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                   <input className="form-input" placeholder={data.contact?.namePlaceholder || "Adınız Soyadınız"} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                   <input className="form-input" type="email" placeholder={data.contact?.emailPlaceholder || "E-posta Adresiniz"} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                 </div>
@@ -3005,7 +3274,7 @@ export default function App() {
           </div>
 
           {/* Asimetrik Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gridTemplateRows: "280px 220px", gap: 12 }}>
+          <div className="grid-social-wrap" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gridTemplateRows: "280px 220px", gap: 12 }}>
             {/* Büyük sol */}
             <div className="social-grid-item" style={{ gridRow: "1 / 3", background: `linear-gradient(135deg, ${theme.primary}30, ${theme.secondary}20, rgba(56,189,248,0.15))`, animationDelay: "0s" }}>
               <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
@@ -3236,7 +3505,7 @@ export default function App() {
       <footer style={{ borderTop: `1px solid ${theme.border}`, background: `linear-gradient(180deg, transparent, ${theme.primary}04)` }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 40px 40px" }}>
           {/* 4 sütun grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 48, marginBottom: 64 }}>
+          <div className="footer-grid-cols" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 48, marginBottom: 64 }}>
 
             {/* Sütun 1: İletişim */}
             <div>
@@ -3315,7 +3584,7 @@ export default function App() {
           </div>
 
           {/* Footer alt bar */}
-          <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div className="footer-bottom-bar" style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <p style={{ color: theme.textMuted, fontSize: 13 }}>
                 {(data.footer?.copyrightText || "© {year} Decha Digital Agency. Tüm hakları saklıdır.").replace("{year}", new Date().getFullYear())}
@@ -3390,7 +3659,7 @@ export default function App() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
                   {/* Ad & Telefon */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div className="grid-meeting-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div>
                       <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: theme.secondary, marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.8 }}>Ad Soyad *</label>
                       <input className="meeting-input" placeholder="Adınız Soyadınız" value={meetingForm.name} onChange={e => setMeetingForm({...meetingForm, name: e.target.value})} />
@@ -3408,7 +3677,7 @@ export default function App() {
                   </div>
 
                   {/* Tarih & Saat */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div className="grid-meeting-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div>
                       <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: theme.secondary, marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.8 }}>Tarih *</label>
                       <input className="meeting-input" type="date" value={meetingForm.date}
