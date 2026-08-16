@@ -13,8 +13,17 @@ import {
 } from "lucide-react";
 
 // Supabase Connection
-const SUPABASE_URL = "https://ymjgbsreczcjwmgujina.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_picW1XWS2VCMK257F7mRtw_hlA2DemC";
+// Kimlik bilgileri proje kökündeki .env dosyasından okunur (Vite).
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error(
+    "[Supabase] Ortam değişkenleri bulunamadı. Proje kökündeki .env dosyasında " +
+    "VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY tanımlı mı kontrol edin, " +
+    "ardından `npm run dev` sunucusunu yeniden başlatın."
+  );
+}
 
 const supabase = {
   from: (table) => ({
