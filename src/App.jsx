@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 // Supabase Connection
-// Kimlik bilgileri proje kökündeki .env dosyasından okunur (Vite) .
+// Kimlik bilgileri proje kökündeki .env dosyasından okunur (Vite).
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
